@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/admissions/sync",
+      "schedule": "0 */12 * * *"
+    }
+  ]
+}
