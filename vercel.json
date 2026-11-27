@@ -2,7 +2,8 @@
   "crons": [
     {
       "path": "/api/admissions/sync",
-      "schedule": "0 */12 * * *"
+      "schedule": "0 0 * * *"
     }
   ]
 }
+
