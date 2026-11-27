@@ -16,8 +16,11 @@ import {
   INITIAL_NEWS_ARTICLES 
 } from './mockData';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const DEFAULT_SUPABASE_URL = 'https://xplbrohvzkruroghomaq.supabase.co';
+const DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwbGJyb2h2emtydXJvZ2hvbWFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4OTUxMDcsImV4cCI6MjEwODQ3MTEwN30._d9IL31BjW9JEElrnW9PrLrgxhW2qehYVArssSiH2gs';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || DEFAULT_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY;
 
 // کیا سپابیس کی جائز کیز موجود ہیں؟
 export const isSupabaseConfigured = Boolean(
