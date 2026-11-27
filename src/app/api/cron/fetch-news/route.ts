@@ -76,6 +76,19 @@ const RSS_FEEDS: {
     name: 'عالمی خبریں',
     url: 'https://news.google.com/rss/search?q=%D8%B9%D8%A7%D9%84%D9%85%DB%8C+%D8%AE%D8%A8%D8%B1%DB%8C%DA%BA&hl=ur&gl=PK&ceid=PK:ur',
   },
+  // 8. عجیب و دلچسپ (Weird & Amazing News)
+  {
+    category: 'weird',
+    categoryUrdu: 'عجیب و دلچسپ',
+    name: 'گوگل نیوز عجیب و غریب',
+    url: 'https://news.google.com/rss/search?q=%D8%B9%D8%AC%DB%8C%D8%A8+%D9%88+%D8%BA%D8%B1%DB%8C%D8%A8&hl=ur&gl=PK&ceid=PK:ur',
+  },
+  {
+    category: 'weird',
+    categoryUrdu: 'عجیب و دلچسپ',
+    name: 'حیرت انگیز خبریں',
+    url: 'https://news.google.com/rss/search?q=%D8%AD%DB%8C%D8%B1%D8%AA+%D8%A7%D9%86%DA%AF%DB%8C%D8%B2+%D8%AE%D8%A8%D8%B1%DB%8C%DA%BA&hl=ur&gl=PK&ceid=PK:ur',
+  },
 ];
 
 // کیٹیگری کے مطابق معیاری ایچ ڈی تصاویر
@@ -87,6 +100,8 @@ const CATEGORY_DEFAULT_IMAGES: Record<string, string> = {
   'technology': 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80',
   'business': 'https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?auto=format&fit=crop&w=1200&q=80',
   'international': 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1200&q=80',
+  'weird': 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80',
+  'kids': 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=1200&q=80',
 };
 
 function stripHtml(html: string): string {

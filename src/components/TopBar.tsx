@@ -62,7 +62,17 @@ export default async function TopBar() {
           >
             <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
             <span>USD: روپے {usdRate}</span>
-            <span className="text-slate-500 hidden lg:inline">| SAR: روپے {sarRate}</span>
+          </Link>
+
+          {/* پٹرول ریٹ */}
+          <Link 
+            href="/petrol-prices" 
+            className="flex items-center gap-1.5 hover:text-amber-400 transition-colors"
+            title="پاکستان میں پٹرول اور ڈیزل کے ریٹس"
+          >
+            <span className="text-amber-400 font-bold">⛽</span>
+            <span>پٹرول: روپے 263.45</span>
+            <span className="text-slate-500 hidden xl:inline">| ڈیزل: روپے 277.10</span>
           </Link>
 
           {/* فوری روابط */}

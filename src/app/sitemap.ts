@@ -69,6 +69,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     },
     {
+      url: `${baseUrl}/kids`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/petrol-prices`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.9,
+    },
+    {
       url: `${baseUrl}/submit`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
@@ -85,6 +97,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     'health',
     'technology',
     'business',
+    'weird',
+    'kids',
   ];
   const categoryRoutes: MetadataRoute.Sitemap = categories.map((cat) => ({
     url: `${baseUrl}/category/${cat}`,

@@ -6,6 +6,8 @@ export type ArticleCategory =
   | 'health'
   | 'technology'
   | 'business'
+  | 'weird'
+  | 'kids'
   | 'خبریں'
   | 'سائنسی معلومات'
   | 'انٹرنیٹ و ٹیکنالوجی'

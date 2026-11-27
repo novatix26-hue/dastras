@@ -15,6 +15,7 @@ import Ticker from '@/components/Ticker';
 import WeatherWidget from '@/components/WeatherWidget';
 import PrayerWidget from '@/components/PrayerWidget';
 import CurrencyWidget from '@/components/CurrencyWidget';
+import PetrolWidget from '@/components/PetrolWidget';
 import MobileCard from '@/components/MobileCard';
 import { 
   Flame, 
@@ -29,7 +30,11 @@ import {
   Sparkles,
   PhoneCall,
   GraduationCap,
-  Newspaper as NewspaperIcon
+  Newspaper as NewspaperIcon,
+  Fuel,
+  Star,
+  BookOpen,
+  Compass
 } from 'lucide-react';
 import { formatUrduDate } from '@/lib/utils';
 
@@ -45,7 +50,9 @@ export default async function HomePage() {
     prayerTimings,
     contacts,
     admissions,
-    newspapers
+    newspapers,
+    kidsStories,
+    weirdArticles
   ] = await Promise.all([
     getArticles({ status: 'approved', limit: 40 }),
     getMobiles({ featured: true }),
@@ -55,6 +62,8 @@ export default async function HomePage() {
     getDirectoryContacts(),
     getAdmissions(),
     getNewspapers(),
+    getArticles({ category: 'kids', limit: 3, status: 'approved' }),
+    getArticles({ category: 'weird', limit: 3, status: 'approved' }),
   ]);
 
   // بریکنگ نیوز اور فیچرڈ مضامین
@@ -176,10 +185,11 @@ export default async function HomePage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <WeatherWidget initialWeather={liveWeather} />
             <PrayerWidget prayerData={prayerTimings} />
             <CurrencyWidget initialData={currencyRates} />
+            <PetrolWidget />
           </div>
         </section>
 
@@ -205,6 +215,121 @@ export default async function HomePage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
               {featuredMobiles.map((mob) => (
                 <MobileCard key={mob.id} mobile={mob} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* 4.1 بچوں کی دنیا شوکیس */}
+        {kidsStories && kidsStories.length > 0 && (
+          <section className="bg-gradient-to-r from-purple-900 via-indigo-900 to-slate-900 text-white rounded-3xl sm:rounded-[2.5rem] p-6 sm:p-10 shadow-xl overflow-hidden relative">
+            <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
+              <div className="space-y-4 max-w-2xl">
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-500/20 text-purple-300 font-bold text-xs border border-purple-400/30">
+                  <Star className="w-4 h-4 fill-amber-300 text-amber-300" />
+                  <span>بچوں کی رنگین دنیا • آج کا خاص انتخاب</span>
+                </div>
+                <h2 className="text-2xl sm:text-4xl font-black font-nastaleeq leading-tight text-white">
+                  {kidsStories[0].title}
+                </h2>
+                <p className="text-sm sm:text-base text-purple-100 line-clamp-2 leading-relaxed">
+                  {kidsStories[0].summary || kidsStories[0].content.slice(0, 180)}...
+                </p>
+                <div className="flex items-center gap-3 pt-2">
+                  <Link
+                    href={`/articles/${kidsStories[0].slug}`}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-purple-950 font-black text-xs sm:text-sm shadow-md transition-all active:scale-95"
+                  >
+                    <span>کہانی پڑھیں</span>
+                    <ArrowLeft className="w-4 h-4" />
+                  </Link>
+                  <Link
+                    href="/kids"
+                    className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs sm:text-sm border border-white/10 transition-colors"
+                  >
+                    <BookOpen className="w-4 h-4 text-purple-300" />
+                    <span>بچوں کی تمام کہانیاں</span>
+                  </Link>
+                </div>
+              </div>
+
+              <div className="relative w-full lg:w-96 h-56 sm:h-64 rounded-2xl overflow-hidden border-2 border-white/10 shadow-2xl shrink-0">
+                <Image
+                  src={kidsStories[0].image_url || 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=800&q=80'}
+                  alt={kidsStories[0].title}
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 384px"
+                  className="object-cover"
+                />
+                <span className="absolute bottom-3 right-3 bg-purple-950/80 backdrop-blur-sm text-purple-200 text-xs px-3 py-1 rounded-full font-bold">
+                  تصویری جھلکیاں 📸
+                </span>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* 4.2 عجیب و دلچسپ خبریں شوکیس */}
+        {weirdArticles && weirdArticles.length > 0 && (
+          <section className="space-y-6">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-6 h-6 text-amber-500" />
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 font-nastaleeq">
+                  عجیب و دلچسپ دنیا
+                </h2>
+              </div>
+              <Link
+                href="/category/weird"
+                className="inline-flex items-center gap-1 text-emerald-700 hover:text-emerald-800 font-bold text-sm"
+              >
+                <span>مزید حیرت انگیز خبریں</span>
+                <ArrowLeft className="w-4 h-4" />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              {weirdArticles.slice(0, 3).map((art) => (
+                <div
+                  key={art.id}
+                  className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col justify-between group"
+                >
+                  <div>
+                    <div className="relative h-44 w-full bg-slate-100 overflow-hidden">
+                      <Image
+                        src={art.image_url || 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80'}
+                        alt={art.title}
+                        fill
+                        sizes="(max-width: 768px) 100vw, 33vw"
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    </div>
+                    <div className="p-5 space-y-2.5">
+                      <div className="flex items-center gap-2 text-xs text-slate-400">
+                        <Clock className="w-3.5 h-3.5" />
+                        <span>{formatUrduDate(art.published_at || art.created_at)}</span>
+                      </div>
+                      <h3 className="text-base sm:text-lg font-bold text-slate-900 group-hover:text-emerald-700 transition-colors line-clamp-2 font-nastaleeq leading-snug">
+                        <Link href={`/articles/${art.slug}`}>
+                          {art.title}
+                        </Link>
+                      </h3>
+                      <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
+                        {art.summary || art.content.slice(0, 120)}...
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="p-5 pt-0">
+                    <Link
+                      href={`/articles/${art.slug}`}
+                      className="w-full flex items-center justify-center gap-1.5 py-2 px-4 rounded-xl bg-slate-50 hover:bg-emerald-600 hover:text-white text-slate-700 text-xs font-bold transition-colors"
+                    >
+                      <span>تفصیل پڑھیں</span>
+                      <ArrowLeft className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
+                </div>
               ))}
             </div>
           </section>

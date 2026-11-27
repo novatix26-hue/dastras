@@ -52,7 +52,7 @@ html {
 .animate-marquee {
   display: inline-flex;
   white-space: nowrap;
-  animation: marqueeRTL 35s linear infinite;
+  animation: marqueeRTL 65s linear infinite;
 }
 
 .animate-marquee:hover {
