@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { PrayerTimingsData, toUrduNumbers } from '@/lib/api/prayer';
+import { PrayerTimingsData, toUrduNumbers, formatUrdu12hTime } from '@/lib/api/prayer';
 import { PAKISTAN_CITIES } from '@/lib/api/weather';
 import { Moon, Clock, Calendar, MapPin, CheckCircle2, ShieldCheck, SunMedium } from 'lucide-react';
 
@@ -59,8 +59,8 @@ export default function PrayerClientView({ initialCity, initialData }: PrayerCli
 
       {/* شہروں کے بٹنز */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-        <div className="text-xs font-bold text-slate-500 mb-3 flex items-center gap-1.5">
-          <MapPin className="w-4 h-4 text-emerald-600" />
+        <div className="text-xs font-bold text-slate-500 mb-2 flex items-center gap-1.5">
+          <MapPin className="w-3.5 h-3.5 text-emerald-600" />
           <span>شہر منتخب کریں:</span>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -68,13 +68,13 @@ export default function PrayerClientView({ initialCity, initialData }: PrayerCli
             <button
               key={city.name}
               onClick={() => handleCitySelect(city.name)}
-              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
-                selectedCity.toLowerCase() === city.name.toLowerCase()
-                  ? 'bg-emerald-800 text-white shadow-md'
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                selectedCity === city.name
+                  ? 'bg-emerald-700 text-white shadow-sm'
                   : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
               }`}
             >
-              {city.urduName} ({city.region})
+              {city.urduName}
             </button>
           ))}
         </div>
@@ -109,13 +109,14 @@ export default function PrayerClientView({ initialCity, initialData }: PrayerCli
           {/* ٹائم ٹیبل لسٹ */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {prayersList.map((p) => {
-              const isNext = prayerData.nextPrayer?.nameUrdu === p.urdu.replace('نمازِ ', '').replace(' (حنفی)', '');
+              const baseName = p.urdu.replace('نمازِ ', '').replace(' (حنفی)', '');
+              const isNext = Boolean(prayerData.nextPrayer?.nameUrdu?.includes(baseName));
               return (
                 <div
                   key={p.name}
                   className={`p-5 rounded-2xl border transition-all ${
                     isNext
-                      ? 'bg-amber-50 border-amber-400 shadow-md ring-2 ring-amber-400'
+                      ? 'bg-amber-50 border-amber-400 shadow-md ring-2 ring-amber-400 scale-[1.02]'
                       : 'bg-white border-slate-200 hover:border-slate-300 shadow-sm'
                   }`}
                 >
@@ -124,20 +125,20 @@ export default function PrayerClientView({ initialCity, initialData }: PrayerCli
                       {p.name}
                     </span>
                     {isNext && (
-                      <span className="text-xs font-extrabold text-amber-800 bg-amber-200 px-2 py-0.5 rounded-full">
+                      <span className="text-xs font-extrabold text-amber-800 bg-amber-200 px-2.5 py-0.5 rounded-full animate-pulse">
                         اگلی نماز
                       </span>
                     )}
                   </div>
-                  <div className="text-2xl font-black text-slate-900 mt-3 font-nastaleeq">
-                    {p.urdu}
+                  <div className="mt-3 flex items-baseline justify-between">
+                    <div className="text-2xl font-black text-slate-900 font-nastaleeq">
+                      {formatUrdu12hTime(p.time)}
+                    </div>
+                    <div className="text-xs text-slate-400 font-bold font-mono">
+                      {p.time}
+                    </div>
                   </div>
-                  <div className="text-3xl font-extrabold text-emerald-700 mt-2">
-                    {toUrduNumbers(p.time)}
-                  </div>
-                  <div className="text-xs text-slate-500 mt-2 border-t border-slate-100 pt-2">
-                    {p.desc}
-                  </div>
+                  <p className="text-xs text-slate-500 mt-2">{p.desc}</p>
                 </div>
               );
             })}

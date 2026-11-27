@@ -25,7 +25,73 @@ const URDU_PRAYER_NAMES: Record<string, string> = {
   Isha: 'عشاء',
 };
 
-// ہجری مہینوں کے اردو نام
+// 24 گھنٹے کے وقت کو 12 گھنٹے کے معیاری اردو وقت میں تبدیل کریں
+export function formatUrdu12hTime(time24: string): string {
+  if (!time24) return '';
+  const [h, m] = time24.split(':').map(Number);
+  const period = h < 12 ? 'صبح' : h === 12 ? 'دوپہر' : h < 17 ? 'سہ پہر' : h < 20 ? 'شام' : 'رات';
+  const h12 = h % 12 || 12;
+  const hStr = h12 < 10 ? `0${h12}` : `${h12}`;
+  const mStr = m < 10 ? `0${m}` : `${m}`;
+  return `${toUrduNumbers(hStr)}:${toUrduNumbers(mStr)} ${period}`;
+}
+
+export function calculateNextPrayer(t: Record<string, string>): {
+  nameUrdu: string;
+  nameEn: string;
+  time: string;
+  time12h: string;
+  remainingTime: string;
+} {
+  // پاکستان کا اصل مقامی وقت (Asia/Karachi UTC+5)
+  const pktString = new Date().toLocaleString('en-US', { timeZone: 'Asia/Karachi' });
+  const now = new Date(pktString);
+  const currentMins = now.getHours() * 60 + now.getMinutes();
+
+  const prayers = [
+    { name: 'Fajr', nameUrdu: 'فجر', time: t.Fajr },
+    { name: 'Dhuhr', nameUrdu: 'ظہر', time: t.Dhuhr },
+    { name: 'Asr', nameUrdu: 'عصر', time: t.Asr },
+    { name: 'Maghrib', nameUrdu: 'مغرب', time: t.Maghrib },
+    { name: 'Isha', nameUrdu: 'عشاء', time: t.Isha },
+  ];
+
+  let next = prayers[0];
+  let remainingMins = 0;
+  let isTomorrow = false;
+
+  for (const p of prayers) {
+    const [h, m] = p.time.split(':').map(Number);
+    const prayerMins = h * 60 + m;
+    if (prayerMins > currentMins) {
+      next = p;
+      remainingMins = prayerMins - currentMins;
+      break;
+    }
+  }
+
+  // اگر عشاء بھی گزر چکی ہو تو اگلی نماز کل صبح کی فجر ہوگی
+  if (remainingMins === 0) {
+    const [h, m] = t.Fajr.split(':').map(Number);
+    remainingMins = (24 * 60 - currentMins) + (h * 60 + m);
+    next = prayers[0];
+    isTomorrow = true;
+  }
+
+  const remHours = Math.floor(remainingMins / 60);
+  const remM = remainingMins % 60;
+  const remainingTime = remHours > 0 
+    ? `${toUrduNumbers(remHours)} گھنٹے ${toUrduNumbers(remM)} منٹ` 
+    : `${toUrduNumbers(remM)} منٹ`;
+
+  return {
+    nameUrdu: isTomorrow ? `${next.nameUrdu} (کل صبح)` : next.nameUrdu,
+    nameEn: next.name,
+    time: next.time,
+    time12h: formatUrdu12hTime(next.time),
+    remainingTime,
+  };
+}
 const HIJRI_MONTHS_URDU: Record<string, string> = {
   'Muharram': 'محرم الحرام',
   'Safar': 'صفر المظفر',
@@ -65,41 +131,8 @@ export async function getLivePrayerTimings(city: string = 'Islamabad'): Promise<
     const hijriDate = `${toUrduNumbers(hijri.day)} ${monthUrdu} ${toUrduNumbers(hijri.year)} ہجری`;
     const gregorianDate = `${toUrduNumbers(greg.day)} ${greg.month.en} ${toUrduNumbers(greg.year)}`;
 
-    // اگلی نماز کا حساب
-    const now = new Date();
-    const currentMins = now.getHours() * 60 + now.getMinutes();
-
-    const prayers = [
-      { name: 'Fajr', time: t.Fajr },
-      { name: 'Dhuhr', time: t.Dhuhr },
-      { name: 'Asr', time: t.Asr },
-      { name: 'Maghrib', time: t.Maghrib },
-      { name: 'Isha', time: t.Isha },
-    ];
-
-    let next = prayers[0];
-    let remainingMins = 0;
-
-    for (const p of prayers) {
-      const [h, m] = p.time.split(':').map(Number);
-      const prayerMins = h * 60 + m;
-      if (prayerMins > currentMins) {
-        next = p;
-        remainingMins = prayerMins - currentMins;
-        break;
-      }
-    }
-
-    if (remainingMins === 0) {
-      // اگر عشاء بھی گزر چکی ہے تو کل کی فجر
-      const [h, m] = t.Fajr.split(':').map(Number);
-      remainingMins = 24 * 60 - currentMins + (h * 60 + m);
-      next = prayers[0];
-    }
-
-    const remHours = Math.floor(remainingMins / 60);
-    const remM = remainingMins % 60;
-    const remainingTime = remHours > 0 ? `${remHours} گھنٹے ${remM} منٹ` : `${remM} منٹ`;
+    // پاکستان کے معیاری وقت (PKT) کے مطابق اگلی نماز کا درست حساب
+    const nextPrayer = calculateNextPrayer(t);
 
     return {
       city,
@@ -113,9 +146,9 @@ export async function getLivePrayerTimings(city: string = 'Islamabad'): Promise<
       hijriDate,
       gregorianDate,
       nextPrayer: {
-        nameUrdu: URDU_PRAYER_NAMES[next.name] || next.name,
-        time: next.time,
-        remainingTime,
+        nameUrdu: nextPrayer.nameUrdu,
+        time: nextPrayer.time,
+        remainingTime: nextPrayer.remainingTime,
       },
     };
   } catch (err) {

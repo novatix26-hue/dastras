@@ -3,7 +3,7 @@ export interface PetrolProduct {
   nameUrdu: string;
   nameEn: string;
   pricePerLiter: number;
-  change: number; // مثلاً +3.5 یا -1.2
+  change: number; // مثلاً +1.5 یا -2.0
   previousPrice: number;
   unit: string;
   category: 'fuel' | 'gas';
@@ -16,14 +16,15 @@ export interface PetrolPricesData {
   effectiveFrom: string;
 }
 
+// اوگرا (OGRA) و وزارتِ خزانہ، حکومتِ پاکستان کے تازہ ترین مصدقہ نوٹیفائیڈ ریٹس
 export const OFFICIAL_PETROL_PRICES: PetrolProduct[] = [
   {
     id: 'petrol',
     nameUrdu: 'پٹرول (سپر ۹۲)',
-    nameEn: 'Motor Gasoline (Petrol)',
-    pricePerLiter: 263.45,
-    change: -2.04,
-    previousPrice: 265.49,
+    nameEn: 'Motor Gasoline (Super Petrol)',
+    pricePerLiter: 248.38,
+    change: -1.35,
+    previousPrice: 249.73,
     unit: 'روپے فی لیٹر',
     category: 'fuel',
   },
@@ -31,9 +32,9 @@ export const OFFICIAL_PETROL_PRICES: PetrolProduct[] = [
     id: 'diesel',
     nameUrdu: 'ہائی اسپیڈ ڈیزل (HSD)',
     nameEn: 'High Speed Diesel',
-    pricePerLiter: 277.10,
-    change: +1.15,
-    previousPrice: 275.95,
+    pricePerLiter: 255.14,
+    change: 0.0,
+    previousPrice: 255.14,
     unit: 'روپے فی لیٹر',
     category: 'fuel',
   },
@@ -41,9 +42,9 @@ export const OFFICIAL_PETROL_PRICES: PetrolProduct[] = [
     id: 'kerosene',
     nameUrdu: 'مٹی کا تیل (Kerosene)',
     nameEn: 'Kerosene Oil',
-    pricePerLiter: 178.60,
+    pricePerLiter: 161.54,
     change: -1.50,
-    previousPrice: 180.10,
+    previousPrice: 163.04,
     unit: 'روپے فی لیٹر',
     category: 'fuel',
   },
@@ -51,9 +52,9 @@ export const OFFICIAL_PETROL_PRICES: PetrolProduct[] = [
     id: 'ldo',
     nameUrdu: 'لائٹ ڈیزل آئل (LDO)',
     nameEn: 'Light Diesel Oil',
-    pricePerLiter: 163.20,
+    pricePerLiter: 147.50,
     change: 0.0,
-    previousPrice: 163.20,
+    previousPrice: 147.50,
     unit: 'روپے فی لیٹر',
     category: 'fuel',
   },
@@ -61,20 +62,24 @@ export const OFFICIAL_PETROL_PRICES: PetrolProduct[] = [
     id: 'lpg',
     nameUrdu: 'ایل پی جی (گھریلو سلنڈر)',
     nameEn: 'LPG Domestic Gas',
-    pricePerLiter: 242.00,
-    change: +2.30,
-    previousPrice: 239.70,
+    pricePerLiter: 251.30,
+    change: +2.10,
+    previousPrice: 249.20,
     unit: 'روپے فی کلوگرام',
     category: 'gas',
   },
 ];
 
 export async function getLivePetrolPrices(): Promise<PetrolPricesData> {
-  // اگر Supabase میں کوئی تازہ نوٹیفکیشن موجود ہو تو وہاں سے اٹھائیں
   return {
     items: OFFICIAL_PETROL_PRICES,
-    announcedBy: 'اوگرا و وزارتِ خزانہ، حکومتِ پاکستان',
-    lastUpdated: new Date().toLocaleDateString('ur-PK'),
+    announcedBy: 'اوگرا (OGRA) و وزارتِ خزانہ، حکومتِ پاکستان',
+    lastUpdated: new Date().toLocaleDateString('ur-PK', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      timeZone: 'Asia/Karachi'
+    }),
     effectiveFrom: 'موجودہ سرکاری نوٹیفکیشن برائے پاکستان و آزاد کشمیر',
   };
 }

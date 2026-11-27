@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Article } from '@/lib/types';
@@ -16,9 +16,10 @@ import {
   ArrowLeft, 
   Award, 
   Star,
-  Compass,
   CheckCircle2,
-  Share2
+  Square,
+  Play,
+  Loader2
 } from 'lucide-react';
 
 interface KidsClientViewProps {
@@ -27,13 +28,26 @@ interface KidsClientViewProps {
 
 export default function KidsClientView({ initialStories }: KidsClientViewProps) {
   const [selectedTag, setSelectedTag] = useState<string>('تمام');
-  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [playingTitle, setPlayingTitle] = useState<string | null>(null);
+  const [audioLoading, setAudioLoading] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // پہلی یا نمایاں کہانی کو "آج کی کہانی" بنائیں
+  // جب کمپوننٹ ان ماؤنٹ ہو تو آڈیو بند کر دیں
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
+
   const featuredStory = initialStories[0];
   const otherStories = initialStories.slice(1);
 
-  // ٹیگز کی بنیاد پر فلٹر
   const filteredStories = selectedTag === 'تمام'
     ? otherStories
     : otherStories.filter(s => 
@@ -42,27 +56,75 @@ export default function KidsClientView({ initialStories }: KidsClientViewProps) 
         s.summary?.includes(selectedTag)
       );
 
-  // براؤزر کا اسپیچ ریڈر برائے کہانی
-  const toggleAudio = (text: string) => {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
-      alert('معذرت، آپ کا براؤزر آڈیو اسپیچ کو سپورٹ نہیں کرتا۔');
-      return;
+  const stopAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      audioRef.current = null;
     }
-
-    if (isPlayingAudio) {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel();
-      setIsPlayingAudio(false);
+    }
+    setPlayingTitle(null);
+    setAudioLoading(false);
+  };
+
+  const playStoryAudio = (story: Article) => {
+    // اگر وہی کہانی پہلے سے چل رہی ہے تو بند کر دیں
+    if (playingTitle === story.title) {
+      stopAudio();
       return;
     }
 
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'ur-PK';
-    utterance.rate = 0.85; // بچوں کے لیے آہستہ اور صاف انداز
-    utterance.onend = () => setIsPlayingAudio(false);
-    utterance.onerror = () => setIsPlayingAudio(false);
+    stopAudio();
+    setPlayingTitle(story.title);
+    setAudioLoading(true);
 
-    window.speechSynthesis.speak(utterance);
-    setIsPlayingAudio(true);
+    const speechText = `${story.title}۔ ${story.summary || story.content.slice(0, 250)}۔ آج کا سبق: ${story.meta_description || 'نیکی کا بدلہ نیکی ہے۔'}`;
+
+    // طریقہ ۱: ہائی کوالٹی نیچرل اردو آڈیو اسٹریم بذریعہ گوگل ٹی ٹی ایس (تمام موبائل و پی سی پر ورکنگ)
+    const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(speechText.slice(0, 180))}&tl=ur&client=tw-ob`;
+    const audio = new Audio(ttsUrl);
+    audioRef.current = audio;
+
+    audio.oncanplay = () => {
+      setAudioLoading(false);
+    };
+
+    audio.onended = () => {
+      setPlayingTitle(null);
+      setAudioLoading(false);
+    };
+
+    audio.onerror = () => {
+      console.warn('Google TTS stream error, falling back to Web Speech API...');
+      // طریقہ ۲: فال بیک براؤزر اسپیچ سنتھیسز
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(speechText);
+        const voices = window.speechSynthesis.getVoices();
+        const urduVoice = voices.find(v => v.lang.startsWith('ur') || v.lang.startsWith('hi'));
+        if (urduVoice) utterance.voice = urduVoice;
+        utterance.lang = urduVoice ? urduVoice.lang : 'ur-PK';
+        utterance.rate = 0.85;
+        utterance.onend = () => {
+          setPlayingTitle(null);
+          setAudioLoading(false);
+        };
+        utterance.onerror = () => {
+          setPlayingTitle(null);
+          setAudioLoading(false);
+        };
+        window.speechSynthesis.speak(utterance);
+      } else {
+        alert('معذرت، اس ڈیوائس پر آڈیو پلے بیک کی سہولت دستیاب نہیں ہے۔');
+        setPlayingTitle(null);
+        setAudioLoading(false);
+      }
+    };
+
+    audio.play().catch(() => {
+      audio.onerror && (audio.onerror as any)();
+    });
   };
 
   const filterTabs = [
@@ -90,9 +152,31 @@ export default function KidsClientView({ initialStories }: KidsClientViewProps) 
           </h1>
 
           <p className="text-base sm:text-lg text-slate-700 leading-relaxed max-w-2xl mx-auto">
-            پیارے بچو! روزانہ ایک خوبصورت، سچی اور دلچسپ کہانی پڑھیں جس میں دلکش تصویریں، انوکھی حکمت اور زندگی کو سنوارنے والا ایک سنہری سبق موجود ہے۔
+            پیارے بچو! روزانہ ایک خوبصورت، سچی اور دلچسپ کہانی پڑھیں اور سنیں جس میں دلکش تصویریں اور زندگی کو سنوارنے والا ایک سنہری اخلاقی سبق موجود ہے۔
           </p>
         </div>
+
+        {/* لائیو آڈیو پلیئر فلوٹنگ بینر (جب کوئی کہانی چل رہی ہو) */}
+        {playingTitle && (
+          <div className="sticky top-24 z-30 bg-purple-900 text-white rounded-2xl p-4 shadow-2xl border-2 border-amber-300 flex items-center justify-between gap-4 animate-in slide-in-from-top duration-300">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-400 text-purple-950 flex items-center justify-center shrink-0">
+                {audioLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Volume2 className="w-5 h-5 animate-pulse" />}
+              </div>
+              <div>
+                <div className="text-xs text-amber-300 font-bold">کہانی آڈیو میں سنائی جا رہی ہے:</div>
+                <div className="text-sm sm:text-base font-black font-nastaleeq line-clamp-1">{playingTitle}</div>
+              </div>
+            </div>
+            <button
+              onClick={stopAudio}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shrink-0 shadow transition-colors"
+            >
+              <Square className="w-3.5 h-3.5 fill-white" />
+              <span>آواز بند کریں</span>
+            </button>
+          </div>
+        )}
 
         {/* 1. آج کی خاص کہانی (Hero Featured Story) */}
         {featuredStory ? (
@@ -153,18 +237,27 @@ export default function KidsClientView({ initialStories }: KidsClientViewProps) 
               </div>
 
               {/* ایکشن بٹنز */}
-              <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
+              <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-3 flex-wrap">
                 <button
-                  onClick={() => toggleAudio(`${featuredStory.title}۔ ${featuredStory.summary || featuredStory.content}`)}
-                  className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all ${
-                    isPlayingAudio
-                      ? 'bg-rose-100 text-rose-700 border border-rose-300 animate-pulse'
-                      : 'bg-purple-100 hover:bg-purple-200 text-purple-800'
+                  onClick={() => playStoryAudio(featuredStory)}
+                  className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all shadow-sm ${
+                    playingTitle === featuredStory.title
+                      ? 'bg-rose-600 text-white animate-pulse'
+                      : 'bg-purple-100 hover:bg-purple-200 text-purple-900'
                   }`}
                   title="کہانی سنیں"
                 >
-                  {isPlayingAudio ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-                  <span>{isPlayingAudio ? 'آواز بند کریں' : 'کہانی سنیں 🔊'}</span>
+                  {playingTitle === featuredStory.title ? (
+                    <>
+                      <VolumeX className="w-4 h-4" />
+                      <span>آواز بند کریں</span>
+                    </>
+                  ) : (
+                    <>
+                      <Volume2 className="w-4 h-4 text-purple-700" />
+                      <span>کہانی سنیں 🔊</span>
+                    </>
+                  )}
                 </button>
 
                 <Link
@@ -255,10 +348,22 @@ export default function KidsClientView({ initialStories }: KidsClientViewProps) 
                     </div>
                   </div>
 
-                  <div className="p-6 pt-0">
+                  <div className="p-6 pt-0 flex items-center gap-2">
+                    <button
+                      onClick={() => playStoryAudio(story)}
+                      className={`p-2.5 rounded-2xl text-xs font-bold transition-all shrink-0 ${
+                        playingTitle === story.title
+                          ? 'bg-rose-600 text-white animate-pulse'
+                          : 'bg-purple-100 hover:bg-purple-200 text-purple-900'
+                      }`}
+                      title="آڈیو سنیں"
+                    >
+                      {playingTitle === story.title ? <Square className="w-4 h-4 fill-white" /> : <Volume2 className="w-4 h-4" />}
+                    </button>
+
                     <Link
                       href={`/articles/${story.slug}`}
-                      className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-2xl bg-purple-50 hover:bg-purple-700 hover:text-white text-purple-900 text-xs sm:text-sm font-black transition-all shadow-sm"
+                      className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-2xl bg-purple-50 hover:bg-purple-700 hover:text-white text-purple-900 text-xs sm:text-sm font-black transition-all shadow-sm"
                     >
                       <span>کہانی پڑھیں</span>
                       <ArrowLeft className="w-4 h-4" />
@@ -294,7 +399,7 @@ export default function KidsClientView({ initialStories }: KidsClientViewProps) 
               href="/"
               className="px-6 py-3 rounded-2xl bg-white text-purple-950 font-black text-sm hover:bg-amber-300 transition-colors shadow-lg"
             >
-              ہوم پیج پر واپس جائیں
+              صفحہ اول پر جائیں
             </Link>
           </div>
         </div>

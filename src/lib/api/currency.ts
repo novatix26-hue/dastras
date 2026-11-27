@@ -29,7 +29,7 @@ const CURRENCIES_CONFIG: Record<string, { nameUrdu: string; flag: string }> = {
 export async function getLiveCurrencyRates(): Promise<LiveCurrencyData | null> {
   try {
     const url = 'https://open.er-api.com/v6/latest/USD';
-    const res = await fetch(url, { next: { revalidate: 1800 } }); // 30 منٹ کیشنگ
+    const res = await fetch(url, { next: { revalidate: 300 } }); // 5 منٹ کیشنگ
     if (!res.ok) return null;
 
     const data = await res.json();

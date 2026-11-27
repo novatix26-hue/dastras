@@ -1,22 +1,57 @@
-import React from 'react';
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { PrayerTimingsData, toUrduNumbers } from '@/lib/api/prayer';
-import { Clock, Moon, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { PrayerTimingsData, toUrduNumbers, formatUrdu12hTime, calculateNextPrayer } from '@/lib/api/prayer';
+import { Clock, Moon, ArrowLeft, Sparkles } from 'lucide-react';
 
 interface PrayerWidgetProps {
   prayerData: PrayerTimingsData | null;
 }
 
 export default function PrayerWidget({ prayerData }: PrayerWidgetProps) {
-  if (!prayerData) return null;
+  const [liveData, setLiveData] = useState<PrayerTimingsData | null>(prayerData);
+
+  useEffect(() => {
+    if (!prayerData) return;
+
+    // ہر ۳۰ سیکنڈ بعد اگلی نماز اور باقی وقت کو لائیو اپڈیٹ کریں
+    const updateCountdown = () => {
+      const timingsObj = {
+        Fajr: prayerData.fajr,
+        Dhuhr: prayerData.dhuhr,
+        Asr: prayerData.asr,
+        Maghrib: prayerData.maghrib,
+        Isha: prayerData.isha,
+      };
+      const next = calculateNextPrayer(timingsObj);
+      setLiveData((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          nextPrayer: {
+            nameUrdu: next.nameUrdu,
+            time: next.time,
+            remainingTime: next.remainingTime,
+          },
+        };
+      });
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 30000);
+    return () => clearInterval(interval);
+  }, [prayerData]);
+
+  if (!liveData) return null;
 
   const prayerList = [
-    { name: 'فجر', time: prayerData.fajr },
-    { name: 'طلوع آفتاب', time: prayerData.sunrise },
-    { name: 'ظہر', time: prayerData.dhuhr },
-    { name: 'عصر', time: prayerData.asr },
-    { name: 'مغرب', time: prayerData.maghrib },
-    { name: 'عشاء', time: prayerData.isha },
+    { name: 'فجر', time: liveData.fajr, time12h: formatUrdu12hTime(liveData.fajr) },
+    { name: 'طلوع', time: liveData.sunrise, time12h: formatUrdu12hTime(liveData.sunrise) },
+    { name: 'ظہر', time: liveData.dhuhr, time12h: formatUrdu12hTime(liveData.dhuhr) },
+    { name: 'عصر', time: liveData.asr, time12h: formatUrdu12hTime(liveData.asr) },
+    { name: 'مغرب', time: liveData.maghrib, time12h: formatUrdu12hTime(liveData.maghrib) },
+    { name: 'عشاء', time: liveData.isha, time12h: formatUrdu12hTime(liveData.isha) },
   ];
 
   return (
@@ -27,7 +62,7 @@ export default function PrayerWidget({ prayerData }: PrayerWidgetProps) {
           <Moon className="w-5 h-5 text-emerald-400" />
           <div>
             <h3 className="font-bold text-base sm:text-lg">اوقاتِ نماز (حنفی فقہ)</h3>
-            <p className="text-[11px] text-emerald-300 font-medium">{prayerData.urduCity}</p>
+            <p className="text-[11px] text-emerald-300 font-medium">{liveData.urduCity} • مصدقہ وقت</p>
           </div>
         </div>
         <Link
@@ -39,32 +74,32 @@ export default function PrayerWidget({ prayerData }: PrayerWidgetProps) {
         </Link>
       </div>
 
-      {/* اگلی نماز کا الرٹ */}
-      {prayerData.nextPrayer && (
-        <div className="bg-emerald-800/50 border border-emerald-600/40 rounded-xl p-2.5 flex items-center justify-between text-xs">
+      {/* اگلی نماز کا الرٹ (Live Accurate Countdown) */}
+      {liveData.nextPrayer && (
+        <div className="bg-emerald-800/60 border border-emerald-500/50 rounded-xl p-2.5 flex items-center justify-between text-xs shadow-inner">
           <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-amber-300" />
-            <span className="font-bold text-white">اگلی نماز: {prayerData.nextPrayer.nameUrdu}</span>
+            <Clock className="w-4 h-4 text-amber-300 animate-pulse" />
+            <span className="font-bold text-white">اگلی نماز: {liveData.nextPrayer.nameUrdu}</span>
           </div>
-          <span className="text-amber-300 font-extrabold">{prayerData.nextPrayer.remainingTime} باقی</span>
+          <span className="text-amber-300 font-black">{liveData.nextPrayer.remainingTime} باقی</span>
         </div>
       )}
 
-      {/* نمازوں کا شیڈول */}
+      {/* نمازوں کا شیڈول (12 گھنٹے اردو فارمیٹ) */}
       <div className="grid grid-cols-3 gap-2 text-center text-xs">
         {prayerList.map((p) => {
-          const isNext = prayerData.nextPrayer?.nameUrdu === p.name;
+          const isNext = liveData.nextPrayer?.nameUrdu?.includes(p.name);
           return (
             <div
               key={p.name}
               className={`p-2 rounded-xl border transition-all ${
                 isNext
-                  ? 'bg-amber-400 text-slate-950 border-amber-300 font-extrabold shadow-sm'
-                  : 'bg-white/5 border-white/10 text-slate-200'
+                  ? 'bg-amber-400 text-slate-950 border-amber-300 font-black shadow-md scale-105'
+                  : 'bg-white/5 border-white/10 text-slate-200 hover:bg-white/10'
               }`}
             >
               <div className="font-bold">{p.name}</div>
-              <div className="text-sm font-bold mt-0.5">{toUrduNumbers(p.time)}</div>
+              <div className="text-xs font-bold mt-1 tracking-tight">{p.time12h}</div>
             </div>
           );
         })}

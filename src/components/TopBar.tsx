@@ -3,17 +3,20 @@ import Link from 'next/link';
 import { getLiveWeather } from '@/lib/api/weather';
 import { getLiveCurrencyRates } from '@/lib/api/currency';
 import { getLivePrayerTimings } from '@/lib/api/prayer';
-import { CloudSun, DollarSign, Calendar, Clock, ShieldCheck, PhoneCall } from 'lucide-react';
+import { getLivePetrolPrices } from '@/lib/api/petrol';
+import { CloudSun, DollarSign, Calendar, Clock, ShieldCheck, PhoneCall, Fuel } from 'lucide-react';
 
 export default async function TopBar() {
-  const [weather, currency, prayer] = await Promise.all([
+  const [weather, currency, prayer, petrolData] = await Promise.all([
     getLiveWeather('Islamabad'),
     getLiveCurrencyRates(),
     getLivePrayerTimings('Islamabad'),
+    getLivePetrolPrices(),
   ]);
 
-  const usdRate = currency?.rates.find((r) => r.code === 'USD')?.rateAgainstPKR || 278.5;
-  const sarRate = currency?.rates.find((r) => r.code === 'SAR')?.rateAgainstPKR || 74.2;
+  const usdRate = currency?.rates.find((r) => r.code === 'USD')?.rateAgainstPKR || 276.18;
+  const petrolPrice = petrolData?.items.find((i) => i.id === 'petrol')?.pricePerLiter || 248.38;
+  const dieselPrice = petrolData?.items.find((i) => i.id === 'diesel')?.pricePerLiter || 255.14;
 
   // موجودہ عیسوی تاریخ اردو میں
   const now = new Date();
@@ -71,8 +74,8 @@ export default async function TopBar() {
             title="پاکستان میں پٹرول اور ڈیزل کے ریٹس"
           >
             <span className="text-amber-400 font-bold">⛽</span>
-            <span>پٹرول: روپے 263.45</span>
-            <span className="text-slate-500 hidden xl:inline">| ڈیزل: روپے 277.10</span>
+            <span>پٹرول: روپے {petrolPrice}</span>
+            <span className="text-slate-400 hidden xl:inline">| ڈیزل: روپے {dieselPrice}</span>
           </Link>
 
           {/* فوری روابط */}
