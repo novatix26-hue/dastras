@@ -15,8 +15,8 @@ export default async function TopBar() {
   ]);
 
   const usdRate = currency?.rates.find((r) => r.code === 'USD')?.rateAgainstPKR || 276.18;
-  const petrolPrice = petrolData?.items.find((i) => i.id === 'petrol')?.pricePerLiter || 248.38;
-  const dieselPrice = petrolData?.items.find((i) => i.id === 'diesel')?.pricePerLiter || 255.14;
+  const petrolPrice = petrolData?.items.find((i) => i.id === 'petrol')?.pricePerLiter || 313.00;
+  const dieselPrice = petrolData?.items.find((i) => i.id === 'diesel')?.pricePerLiter || 346.00;
 
   // موجودہ عیسوی تاریخ اردو میں
   const now = new Date();

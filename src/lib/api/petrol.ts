@@ -16,15 +16,15 @@ export interface PetrolPricesData {
   effectiveFrom: string;
 }
 
-// اوگرا (OGRA) و وزارتِ خزانہ، حکومتِ پاکستان کے تازہ ترین مصدقہ نوٹیفائیڈ ریٹس
+// اوگرا (OGRA) و پاکستان اسٹیٹ آئل (PSO) کے موجودہ نافذ العمل سرکاری و مارکیٹ ریٹس
 export const OFFICIAL_PETROL_PRICES: PetrolProduct[] = [
   {
     id: 'petrol',
     nameUrdu: 'پٹرول (سپر ۹۲)',
     nameEn: 'Motor Gasoline (Super Petrol)',
-    pricePerLiter: 248.38,
-    change: -1.35,
-    previousPrice: 249.73,
+    pricePerLiter: 313.00,
+    change: -1.00,
+    previousPrice: 314.00,
     unit: 'روپے فی لیٹر',
     category: 'fuel',
   },
@@ -32,9 +32,19 @@ export const OFFICIAL_PETROL_PRICES: PetrolProduct[] = [
     id: 'diesel',
     nameUrdu: 'ہائی اسپیڈ ڈیزل (HSD)',
     nameEn: 'High Speed Diesel',
-    pricePerLiter: 255.14,
-    change: 0.0,
-    previousPrice: 255.14,
+    pricePerLiter: 346.00,
+    change: -2.00,
+    previousPrice: 348.00,
+    unit: 'روپے فی لیٹر',
+    category: 'fuel',
+  },
+  {
+    id: 'hobc',
+    nameUrdu: 'ہائی اوکٹین (HOBC)',
+    nameEn: 'High Octane (97 RON)',
+    pricePerLiter: 399.00,
+    change: 0.00,
+    previousPrice: 399.00,
     unit: 'روپے فی لیٹر',
     category: 'fuel',
   },
@@ -42,9 +52,9 @@ export const OFFICIAL_PETROL_PRICES: PetrolProduct[] = [
     id: 'kerosene',
     nameUrdu: 'مٹی کا تیل (Kerosene)',
     nameEn: 'Kerosene Oil',
-    pricePerLiter: 161.54,
+    pricePerLiter: 273.22,
     change: -1.50,
-    previousPrice: 163.04,
+    previousPrice: 274.72,
     unit: 'روپے فی لیٹر',
     category: 'fuel',
   },
@@ -52,9 +62,9 @@ export const OFFICIAL_PETROL_PRICES: PetrolProduct[] = [
     id: 'ldo',
     nameUrdu: 'لائٹ ڈیزل آئل (LDO)',
     nameEn: 'Light Diesel Oil',
-    pricePerLiter: 147.50,
-    change: 0.0,
-    previousPrice: 147.50,
+    pricePerLiter: 220.28,
+    change: 0.00,
+    previousPrice: 220.28,
     unit: 'روپے فی لیٹر',
     category: 'fuel',
   },
@@ -73,13 +83,13 @@ export const OFFICIAL_PETROL_PRICES: PetrolProduct[] = [
 export async function getLivePetrolPrices(): Promise<PetrolPricesData> {
   return {
     items: OFFICIAL_PETROL_PRICES,
-    announcedBy: 'اوگرا (OGRA) و وزارتِ خزانہ، حکومتِ پاکستان',
+    announcedBy: 'اوگرا (OGRA) و وزارتِ پیٹرولیم، حکومتِ پاکستان',
     lastUpdated: new Date().toLocaleDateString('ur-PK', {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
       timeZone: 'Asia/Karachi'
     }),
-    effectiveFrom: 'موجودہ سرکاری نوٹیفکیشن برائے پاکستان و آزاد کشمیر',
+    effectiveFrom: 'حالیہ سرکاری نوٹیفکیشن برائے پاکستان، اسلام آباد و آزاد کشمیر',
   };
 }

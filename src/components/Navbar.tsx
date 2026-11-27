@@ -90,7 +90,7 @@ export default function Navbar() {
               className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 text-xs font-bold font-urdu-sans border border-amber-200/80 transition-colors"
             >
               <Fuel className="w-4 h-4 text-amber-700" />
-              <span>پٹرول: 248.38 روپے</span>
+              <span>پٹرول: 313.00 روپے</span>
             </Link>
 
             <Link
