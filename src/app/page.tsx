@@ -67,10 +67,17 @@ export default async function HomePage() {
     getArticles({ category: 'weird', limit: 3, status: 'approved' }),
   ]);
 
-  // بریکنگ نیوز اور فیچرڈ مضامین
-  const tickerArticles = allArticles.slice(0, 10);
-  const heroArticle = allArticles[0];
-  const sidebarArticles = allArticles.slice(1, 6);
+  // صرف خاص، اہم اور قومی و بین الاقوامی خبریں (کہانیاں ٹکر یا ہیرو میں نہیں آئیں گی)
+  const newsArticles = allArticles.filter(a => a.category !== 'kids');
+
+  // بریکنگ اور نمایاں ترین خبروں کو ترجیح دیں
+  const breakingNews = newsArticles.filter(a => a.is_breaking);
+  const otherNews = newsArticles.filter(a => !a.is_breaking);
+  const prioritizedNews = [...breakingNews, ...otherNews];
+
+  const tickerArticles = prioritizedNews.slice(0, 10);
+  const heroArticle = prioritizedNews[0];
+  const sidebarArticles = prioritizedNews.slice(1, 6);
 
   // کیٹیگری کے لحاظ سے فلٹرنگ
   const pakistanArticles = allArticles.filter(a => a.category === 'pakistan' || a.category === 'azad-kashmir' || a.category === 'خبریں').slice(0, 4);

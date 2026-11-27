@@ -10,7 +10,12 @@ interface TickerProps {
 }
 
 export default function Ticker({ articles }: TickerProps) {
-  if (!articles || articles.length === 0) return null;
+  // صرف خاص اور اہم خبریں، کہانیوں کے عنوانات ٹکر میں شامل نہ ہوں
+  const filteredArticles = (articles || []).filter(
+    (item) => item.category !== 'kids' && !item.category?.includes('کہانی')
+  );
+
+  if (filteredArticles.length === 0) return null;
 
   return (
     <div className="bg-gradient-to-r from-red-700 via-red-600 to-rose-700 text-white font-urdu-sans shadow-md border-b border-red-800">
@@ -26,7 +31,7 @@ export default function Ticker({ articles }: TickerProps) {
         {/* اسکرولنگ ہیڈلائنز مارکی */}
         <div className="flex-1 overflow-hidden py-2 sm:py-2.5 relative">
           <div className="animate-marquee flex items-center gap-8 text-xs sm:text-sm font-medium">
-            {articles.map((item, idx) => (
+            {filteredArticles.map((item, idx) => (
               <Link
                 key={item.id || idx}
                 href={`/articles/${item.slug}`}
