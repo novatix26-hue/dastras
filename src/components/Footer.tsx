@@ -110,11 +110,10 @@ export default function Footer() {
             </p>
             <div className="flex flex-col gap-2">
               <Link 
-                href="/admin" 
-                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-semibold transition-colors border border-slate-700"
+                href="/submit" 
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-emerald-800 hover:bg-emerald-700 text-white text-sm font-semibold transition-colors border border-emerald-700"
               >
-                <span>ایڈمن لاگ ان پینل</span>
-                <ExternalLink className="w-4 h-4 text-emerald-400" />
+                <span>اپنا مضمون یا تجویز بھیجیں</span>
               </Link>
             </div>
           </div>

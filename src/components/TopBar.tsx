@@ -73,10 +73,6 @@ export default async function TopBar() {
             <Link href="/directory" className="hover:text-emerald-400 transition-colors">
               ہیلپ لائنز
             </Link>
-            <Link href="/admin" className="hover:text-emerald-400 transition-colors flex items-center gap-1">
-              <ShieldCheck className="w-3.5 h-3.5 text-slate-400" />
-              <span>ایڈمن</span>
-            </Link>
           </div>
         </div>
       </div>

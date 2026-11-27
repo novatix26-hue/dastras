@@ -44,7 +44,6 @@ export default function Navbar() {
     { href: '/directory', label: 'رابطہ ڈائریکٹری' },
     { href: '/admissions', label: 'داخلے و جامعات' },
     { href: '/newspapers', label: 'قومی اخبارات' },
-    { href: '/admin', label: 'ایڈمن پینل' },
   ];
 
   return (

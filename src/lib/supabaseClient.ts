@@ -601,4 +601,77 @@ export async function toggleBreakingNews(id: string, isBreaking: boolean): Promi
   return false;
 }
 
+export async function updateArticle(id: string, updates: Partial<Article>): Promise<boolean> {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { error } = await supabase.from('articles').update(updates).eq('id', id);
+      return !error;
+    } catch {
+      return false;
+    }
+  }
+  return false;
+}
+
+export async function updateMobile(id: string, updates: Partial<MobileModel>): Promise<boolean> {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { error } = await supabase.from('mobiles').update(updates).eq('id', id);
+      return !error;
+    } catch {
+      return false;
+    }
+  }
+  return false;
+}
+
+export async function deleteDirectoryContact(id: string): Promise<boolean> {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { error } = await supabase.from('directory_contacts').delete().eq('id', id);
+      return !error;
+    } catch {
+      return false;
+    }
+  }
+  return false;
+}
+
+export async function deleteAdmission(id: string): Promise<boolean> {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { error } = await supabase.from('admissions').delete().eq('id', id);
+      return !error;
+    } catch {
+      return false;
+    }
+  }
+  return false;
+}
+
+export async function deleteNewspaper(id: string): Promise<boolean> {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { error } = await supabase.from('newspapers').delete().eq('id', id);
+      return !error;
+    } catch {
+      return false;
+    }
+  }
+  return false;
+}
+
+export async function addNewspaper(newspaper: Omit<Newspaper, 'id'>): Promise<Newspaper | null> {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { data, error } = await supabase.from('newspapers').insert([newspaper]).select().single();
+      if (!error && data) return data as Newspaper;
+    } catch (e) {
+      console.warn('Supabase newspaper insert failed', e);
+    }
+  }
+  return null;
+}
+
+
 
