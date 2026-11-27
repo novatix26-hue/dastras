@@ -40,7 +40,7 @@ export default function ArticlesPage() {
     const matchesSearch =
       !query ||
       a.title.toLowerCase().includes(query) ||
-      a.author_name.toLowerCase().includes(query) ||
+      (a.author_name && a.author_name.toLowerCase().includes(query)) ||
       (a.summary && a.summary.toLowerCase().includes(query));
     return matchesCategory && matchesSearch;
   });

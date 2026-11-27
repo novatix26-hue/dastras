@@ -49,7 +49,7 @@ export default function HeroSearch() {
     ? allArticles.filter(
         (a) =>
           a.title.toLowerCase().includes(trimmed) ||
-          a.author_name.toLowerCase().includes(trimmed) ||
+          (a.author_name && a.author_name.toLowerCase().includes(trimmed)) ||
           a.category.toLowerCase().includes(trimmed)
       ).slice(0, 3)
     : [];

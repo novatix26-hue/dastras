@@ -1,12 +1,12 @@
 import { MetadataRoute } from 'next';
-import { getArticles, getNewsArticles } from '@/lib/supabaseClient';
+import { getArticles, getNewsArticles, getMobiles } from '@/lib/supabaseClient';
 
 export const revalidate = 3600; // ہر 1 گھنٹے بعد سائٹ میپ خودکار تازہ ہوگا
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://dastaras.pk';
 
-  // 1. بنیادی جامد یو آر ایلز (Static Routes)
+  // 1. بنیادی جامد یو آر ایلز (Static Routes & Utilities)
   const staticRoutes: MetadataRoute.Sitemap = [
     {
       url: `${baseUrl}/`,
@@ -15,28 +15,52 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 1.0,
     },
     {
-      url: `${baseUrl}/news`,
+      url: `${baseUrl}/mobiles`,
       lastModified: new Date(),
-      changeFrequency: 'hourly',
+      changeFrequency: 'daily',
       priority: 0.95,
     },
     {
-      url: `${baseUrl}/articles`,
+      url: `${baseUrl}/weather`,
+      lastModified: new Date(),
+      changeFrequency: 'hourly',
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/prayer-times`,
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 0.9,
     },
     {
-      url: `${baseUrl}/directory`,
+      url: `${baseUrl}/currency-rates`,
+      lastModified: new Date(),
+      changeFrequency: 'hourly',
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/news`,
+      lastModified: new Date(),
+      changeFrequency: 'hourly',
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/articles`,
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 0.85,
     },
     {
+      url: `${baseUrl}/directory`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.8,
+    },
+    {
       url: `${baseUrl}/admissions`,
       lastModified: new Date(),
       changeFrequency: 'daily',
-      priority: 0.85,
+      priority: 0.8,
     },
     {
       url: `${baseUrl}/newspapers`,
@@ -52,33 +76,50 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
-  // 2. تمام تازہ ترین بریکنگ نیوز کے ڈائنامک یو آر ایلز (Dynamic News URLs)
-  let newsRoutes: MetadataRoute.Sitemap = [];
-  try {
-    const newsArticles = await getNewsArticles(undefined, 100);
-    newsRoutes = newsArticles.map((item) => ({
-      url: `${baseUrl}/news/${item.slug}`,
-      lastModified: item.published_at ? new Date(item.published_at) : new Date(),
-      changeFrequency: 'daily',
-      priority: 0.9,
-    }));
-  } catch (e) {
-    console.error('Error generating sitemap news routes:', e);
-  }
+  // 2. کیٹیگری یو آر ایلز (Category Routes)
+  const categories = [
+    'pakistan',
+    'azad-kashmir',
+    'international',
+    'sports',
+    'health',
+    'technology',
+    'business',
+  ];
+  const categoryRoutes: MetadataRoute.Sitemap = categories.map((cat) => ({
+    url: `${baseUrl}/category/${cat}`,
+    lastModified: new Date(),
+    changeFrequency: 'hourly',
+    priority: 0.9,
+  }));
 
-  // 3. معلوماتی و تحقیقی مضامین کے ڈائنامک یو آر ایلز (Dynamic Article URLs)
-  let articleRoutes: MetadataRoute.Sitemap = [];
+  // 3. موبائل فونز کے ڈائنامک یو آر ایلز (Mobile Product Pages)
+  let mobileRoutes: MetadataRoute.Sitemap = [];
   try {
-    const articles = await getArticles('approved');
-    articleRoutes = articles.map((art) => ({
-      url: `${baseUrl}/articles/${art.slug}`,
-      lastModified: art.created_at ? new Date(art.created_at) : new Date(),
+    const mobiles = await getMobiles();
+    mobileRoutes = mobiles.map((mob) => ({
+      url: `${baseUrl}/mobiles/${mob.slug}`,
+      lastModified: mob.updated_at ? new Date(mob.updated_at) : new Date(),
       changeFrequency: 'weekly',
       priority: 0.85,
+    }));
+  } catch (e) {
+    console.error('Error generating sitemap mobile routes:', e);
+  }
+
+  // 4. تمام مضامین و خبروں کے ڈائنامک یو آر ایلز (Articles)
+  let articleRoutes: MetadataRoute.Sitemap = [];
+  try {
+    const articles = await getArticles({ status: 'approved', limit: 200 });
+    articleRoutes = articles.map((art) => ({
+      url: `${baseUrl}/articles/${art.slug}`,
+      lastModified: art.published_at ? new Date(art.published_at) : new Date(),
+      changeFrequency: 'daily',
+      priority: 0.9,
     }));
   } catch (e) {
     console.error('Error generating sitemap article routes:', e);
   }
 
-  return [...staticRoutes, ...newsRoutes, ...articleRoutes];
+  return [...staticRoutes, ...categoryRoutes, ...mobileRoutes, ...articleRoutes];
 }

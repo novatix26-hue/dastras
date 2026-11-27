@@ -1,4 +1,11 @@
 export type ArticleCategory = 
+  | 'pakistan'
+  | 'azad-kashmir'
+  | 'international'
+  | 'sports'
+  | 'health'
+  | 'technology'
+  | 'business'
   | 'خبریں'
   | 'سائنسی معلومات'
   | 'انٹرنیٹ و ٹیکنالوجی'
@@ -10,14 +17,50 @@ export interface Article {
   id: string;
   title: string;
   slug: string;
-  author_name: string;
+  author_name?: string | null;
   category: ArticleCategory;
   image_url?: string | null;
   summary?: string | null;
   content: string;
-  status: ArticleStatus;
-  views: number;
+  status?: ArticleStatus;
+  source_name?: string | null;
+  source_url?: string | null;
+  meta_description?: string | null;
+  keywords?: string[] | null;
+  published_at?: string;
+  is_breaking?: boolean;
+  views?: number;
   created_at: string;
+  updated_at?: string;
+}
+
+export type MobileBrand = 
+  | 'Samsung'
+  | 'Apple'
+  | 'Xiaomi'
+  | 'Vivo'
+  | 'Oppo'
+  | 'Infinix'
+  | 'Tecno'
+  | 'Realme'
+  | 'Other';
+
+export interface MobileModel {
+  id: string;
+  brand: MobileBrand;
+  model_name: string;
+  slug: string;
+  price_pkr: number;
+  ram?: string | null;
+  storage?: string | null;
+  camera?: string | null;
+  battery?: string | null;
+  display?: string | null;
+  processor?: string | null;
+  image_url?: string | null;
+  launch_date?: string | null;
+  is_featured: boolean;
+  created_at?: string;
   updated_at?: string;
 }
 

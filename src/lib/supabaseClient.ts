@@ -1,11 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
 import { 
   Article, 
+  ArticleCategory,
   DirectoryContact, 
   University, 
   Admission, 
   Newspaper,
-  NewsArticle 
+  NewsArticle,
+  MobileModel 
 } from './types';
 import { 
   INITIAL_ARTICLES, 
@@ -59,15 +61,38 @@ function setStorage<T>(key: string, data: T) {
 }
 
 // -------------------------------------------------------------
-// مضامین (Articles) API سروسز
+// مضامین و خبریں (Articles) API سروسز
 // -------------------------------------------------------------
-export async function getArticles(status: 'approved' | 'all' = 'approved'): Promise<Article[]> {
+export async function getArticles(options?: string | {
+  status?: 'approved' | 'all';
+  category?: string;
+  limit?: number;
+  isBreaking?: boolean;
+}): Promise<Article[]> {
+  const opts = typeof options === 'string' ? { status: options as 'approved' | 'all' } : options;
+  const status = opts?.status || 'approved';
+  const category = opts?.category;
+  const limit = opts?.limit || 50;
+  const isBreaking = opts?.isBreaking;
+
   if (isSupabaseConfigured && supabase) {
     try {
-      let query = supabase.from('articles').select('*').order('created_at', { ascending: false });
+      let query = supabase
+        .from('articles')
+        .select('*')
+        .order('published_at', { ascending: false })
+        .limit(limit);
+
       if (status === 'approved') {
-        query = query.eq('status', 'approved');
+        query = query.or('status.eq.approved,status.is.null');
       }
+      if (category && category !== 'all' && category !== 'تمام') {
+        query = query.eq('category', category);
+      }
+      if (isBreaking !== undefined) {
+        query = query.eq('is_breaking', isBreaking);
+      }
+
       const { data, error } = await query;
       if (!error && data && data.length > 0) {
         return data as Article[];
@@ -79,10 +104,14 @@ export async function getArticles(status: 'approved' | 'all' = 'approved'): Prom
 
   // Fallback to local storage or mock data
   const localArticles = getStorage<Article[]>('articles', INITIAL_ARTICLES);
-  if (status === 'approved') {
-    return localArticles.filter(a => a.status === 'approved');
+  let res = status === 'approved' ? localArticles.filter(a => !a.status || a.status === 'approved') : localArticles;
+  if (category && category !== 'all' && category !== 'تمام') {
+    res = res.filter(a => a.category === category);
   }
-  return localArticles;
+  if (isBreaking !== undefined) {
+    res = res.filter(a => a.is_breaking === isBreaking);
+  }
+  return res.slice(0, limit);
 }
 
 export async function getArticleBySlug(slug: string): Promise<Article | null> {
@@ -338,13 +367,15 @@ export async function getNewsArticleBySlug(slug: string): Promise<NewsArticle | 
 export async function checkNewsArticleExists(sourceUrl: string): Promise<boolean> {
   if (isSupabaseConfigured && supabase) {
     try {
-      const { data } = await supabase
-        .from('news_articles')
-        .select('id')
-        .eq('source_url', sourceUrl)
-        .limit(1);
+      // چیک کریں کہ آیا یہ آرٹیکل articles یا news_articles میں موجود ہے
+      const [{ data: artData }, { data: newsData }] = await Promise.all([
+        supabase.from('articles').select('id').eq('source_url', sourceUrl).limit(1),
+        supabase.from('news_articles').select('id').eq('source_url', sourceUrl).limit(1),
+      ]);
 
-      return Boolean(data && data.length > 0);
+      if ((artData && artData.length > 0) || (newsData && newsData.length > 0)) {
+        return true;
+      }
     } catch (e) {
       console.warn('Supabase checkNewsArticleExists failed', e);
     }
@@ -352,6 +383,59 @@ export async function checkNewsArticleExists(sourceUrl: string): Promise<boolean
 
   const allNews = getStorage<NewsArticle[]>('news_articles', INITIAL_NEWS_ARTICLES);
   return allNews.some((n) => n.source_url === sourceUrl);
+}
+
+export async function insertArticleDirect(
+  article: {
+    title: string;
+    slug: string;
+    summary?: string | null;
+    content: string;
+    category: ArticleCategory | string;
+    image_url?: string | null;
+    source_name?: string | null;
+    source_url?: string | null;
+    meta_description?: string | null;
+    keywords?: string[] | null;
+    published_at?: string;
+    is_breaking?: boolean;
+    status?: string;
+  }
+): Promise<{ success: boolean; data?: Article; error?: string }> {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const payload = {
+        title: article.title,
+        slug: article.slug,
+        summary: article.summary || null,
+        content: article.content,
+        category: article.category,
+        image_url: article.image_url || null,
+        source_name: article.source_name || null,
+        source_url: article.source_url || null,
+        meta_description: article.meta_description || null,
+        keywords: article.keywords || null,
+        published_at: article.published_at || new Date().toISOString(),
+        is_breaking: article.is_breaking || false,
+        status: article.status || 'approved',
+      };
+
+      const { data, error } = await supabase
+        .from('articles')
+        .upsert(payload, { onConflict: 'slug' })
+        .select()
+        .single();
+
+      if (!error && data) {
+        return { success: true, data: data as Article };
+      }
+      return { success: false, error: error?.message };
+    } catch (e: any) {
+      return { success: false, error: e?.message };
+    }
+  }
+
+  return { success: false, error: 'Database not configured' };
 }
 
 export async function insertNewsArticle(
@@ -384,4 +468,136 @@ export async function insertNewsArticle(
   setStorage('news_articles', [newArt, ...existing]);
   return { success: true, data: newArt };
 }
+
+// -------------------------------------------------------------
+// موبائل فونز (Mobiles) API سروسز
+// -------------------------------------------------------------
+export async function getMobiles(filters?: {
+  brand?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  search?: string;
+  featured?: boolean;
+}): Promise<MobileModel[]> {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      let query = supabase.from('mobiles').select('*').order('price_pkr', { ascending: false });
+
+      if (filters?.brand && filters.brand !== 'All' && filters.brand !== 'تمام برانڈز') {
+        query = query.eq('brand', filters.brand);
+      }
+      if (filters?.minPrice !== undefined) {
+        query = query.gte('price_pkr', filters.minPrice);
+      }
+      if (filters?.maxPrice !== undefined) {
+        query = query.lte('price_pkr', filters.maxPrice);
+      }
+      if (filters?.featured !== undefined) {
+        query = query.eq('is_featured', filters.featured);
+      }
+      if (filters?.search) {
+        query = query.ilike('model_name', `%${filters.search}%`);
+      }
+
+      const { data, error } = await query;
+      if (!error && data) {
+        return data as MobileModel[];
+      }
+    } catch (e) {
+      console.warn('Supabase mobiles fetch failed', e);
+    }
+  }
+
+  return [];
+}
+
+export async function getMobileBySlug(slug: string): Promise<MobileModel | null> {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('mobiles')
+        .select('*')
+        .eq('slug', slug)
+        .single();
+
+      if (!error && data) {
+        return data as MobileModel;
+      }
+    } catch (e) {
+      console.warn('Supabase mobile by slug failed', e);
+    }
+  }
+  return null;
+}
+
+export async function insertMobile(
+  mobile: Omit<MobileModel, 'id' | 'created_at' | 'updated_at'>
+): Promise<{ success: boolean; data?: MobileModel; error?: string }> {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { data, error } = await supabase.from('mobiles').insert([mobile]).select().single();
+      if (!error && data) {
+        return { success: true, data: data as MobileModel };
+      }
+      return { success: false, error: error?.message };
+    } catch (e: any) {
+      return { success: false, error: e?.message };
+    }
+  }
+  return { success: false, error: 'Database not configured' };
+}
+
+export async function bulkInsertMobiles(
+  mobilesList: Omit<MobileModel, 'id' | 'created_at' | 'updated_at'>[]
+): Promise<{ success: boolean; insertedCount: number; error?: string }> {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { data, error } = await supabase.from('mobiles').upsert(mobilesList, { onConflict: 'slug' }).select();
+      if (!error) {
+        return { success: true, insertedCount: data ? data.length : mobilesList.length };
+      }
+      return { success: false, insertedCount: 0, error: error?.message };
+    } catch (e: any) {
+      return { success: false, insertedCount: 0, error: e?.message };
+    }
+  }
+  return { success: false, insertedCount: 0, error: 'Database not configured' };
+}
+
+export async function deleteMobile(id: string): Promise<boolean> {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { error } = await supabase.from('mobiles').delete().eq('id', id);
+      return !error;
+    } catch {
+      return false;
+    }
+  }
+  return false;
+}
+
+export async function deleteArticle(id: string): Promise<boolean> {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { error } = await supabase.from('articles').delete().eq('id', id);
+      return !error;
+    } catch {
+      return false;
+    }
+  }
+  return false;
+}
+
+export async function toggleBreakingNews(id: string, isBreaking: boolean): Promise<boolean> {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { error } = await supabase.from('articles').update({ is_breaking: isBreaking }).eq('id', id);
+      return !error;
+    } catch {
+      return false;
+    }
+  }
+  return false;
+}
+
 
