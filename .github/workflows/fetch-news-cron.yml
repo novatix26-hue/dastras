@@ -1,0 +1,15 @@
+name: Automated News Fetch Cron (Every 30 Mins)
+
+on:
+  schedule:
+    # ہر 30 منٹ بعد خودکار چلے گا
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+jobs:
+  fetch-news:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping News Fetch API
+        run: |
+          curl -s -X POST "https://dastras-five.vercel.app/api/cron/fetch-news" || echo "API pinged"
