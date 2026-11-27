@@ -5,7 +5,10 @@ import { checkNewsArticleExists, insertArticleDirect, insertNewsArticle } from '
 import { generateSlug } from '@/lib/utils';
 import { ArticleCategory } from '@/lib/types';
 
-// ملٹی کیٹیگری آر ایس ایس فیڈز
+export const dynamic = 'force-dynamic';
+export const maxDuration = 60; // زیادہ سے زیادہ ۶۰ سیکنڈ ایگزیکیوشن تاکہ تمام اہم خبریں پروسیس ہو سکیں
+
+// ملٹی کیٹیگری مصدقہ آر ایس ایس فیڈز برائے پاکستان، آزاد کشمیر و بین الاقوامی دنیا
 const RSS_FEEDS: {
   category: ArticleCategory;
   categoryUrdu: string;
@@ -13,7 +16,60 @@ const RSS_FEEDS: {
   url: string;
   isBreaking?: boolean;
 }[] = [
-  // 1. آزاد کشمیر
+  // ۱. پاکستان کی بریکنگ و قومی خبریں (سرفہرست قومی ذرائع)
+  {
+    category: 'pakistan',
+    categoryUrdu: 'پاکستان',
+    name: 'روزنامہ جنگ پاکستان',
+    url: 'https://jang.com.pk/rss/1/1',
+    isBreaking: true,
+  },
+  {
+    category: 'pakistan',
+    categoryUrdu: 'پاکستان',
+    name: 'ڈان نیوز اردو',
+    url: 'https://www.dawnnews.tv/feeds/',
+    isBreaking: true,
+  },
+  {
+    category: 'pakistan',
+    categoryUrdu: 'پاکستان',
+    name: 'بی بی سی اردو پاکستان',
+    url: 'https://feeds.bbci.co.uk/urdu/rss.xml',
+    isBreaking: true,
+  },
+  {
+    category: 'pakistan',
+    categoryUrdu: 'پاکستان',
+    name: 'ایکسپریس نیوز پاکستان',
+    url: 'https://www.express.pk/feed/',
+    isBreaking: true,
+  },
+  {
+    category: 'pakistan',
+    categoryUrdu: 'پاکستان',
+    name: 'گوگل نیوز پاکستان ٹاپ سرخیاں',
+    url: 'https://news.google.com/rss/search?q=%D9%BE%D8%A7%DA%A9%D8%B3%D8%AA%D8%A7%D9%86+%D8%AE%D8%A8%D8%B1%DB%8C%DA%BA&hl=ur&gl=PK&ceid=PK:ur',
+    isBreaking: true,
+  },
+
+  // ۲. دنیا بھر کی اہم ترین عالمی خبریں (International Headlines)
+  {
+    category: 'international',
+    categoryUrdu: 'عالمی',
+    name: 'روزنامہ جنگ عالمی خبریں',
+    url: 'https://jang.com.pk/rss/1/2',
+    isBreaking: true,
+  },
+  {
+    category: 'international',
+    categoryUrdu: 'عالمی',
+    name: 'گوگل نیوز عالمی بریکنگ',
+    url: 'https://news.google.com/rss/search?q=%D8%B9%D8%A7%D9%84%D9%85%DB%8C+%D8%AE%D8%A8%D8%B1%DB%8C%DA%BA&hl=ur&gl=PK&ceid=PK:ur',
+    isBreaking: true,
+  },
+
+  // ۳. آزاد کشمیر و خطہ کشمیر
   {
     category: 'azad-kashmir',
     categoryUrdu: 'آزاد کشمیر',
@@ -24,70 +80,54 @@ const RSS_FEEDS: {
   {
     category: 'azad-kashmir',
     categoryUrdu: 'آزاد کشمیر',
-    name: 'مظفرآباد کشمیر اپڈیٹس',
+    name: 'مظفرآباد و کشمیر اپڈیٹس',
     url: 'https://news.google.com/rss/search?q=Azad+Kashmir+Muzaffarabad&hl=en-PK&gl=PK&ceid=PK:en',
   },
-  // 2. پاکستان
-  {
-    category: 'pakistan',
-    categoryUrdu: 'پاکستان',
-    name: 'گوگل نیوز پاکستان',
-    url: 'https://news.google.com/rss/search?q=%D9%BE%D8%A7%DA%A9%D8%B3%D8%AA%D8%A7%D9%86+%D8%AE%D8%A8%D8%B1%DB%8C%DA%BA&hl=ur&gl=PK&ceid=PK:ur',
-    isBreaking: true,
-  },
-  {
-    category: 'pakistan',
-    categoryUrdu: 'پاکستان',
-    name: 'ایکسپریس نیوز پاکستان',
-    url: 'https://www.express.pk/feed/',
-  },
-  // 3. صحت (Health)
-  {
-    category: 'health',
-    categoryUrdu: 'صحت',
-    name: 'طبی و صحت رہنمائی',
-    url: 'https://news.google.com/rss/search?q=%D8%B5%D8%AD%D8%AA+%D8%B7%D8%A8&hl=ur&gl=PK&ceid=PK:ur',
-  },
-  // 4. کھیل (Sports)
+
+  // ۴. کھیل و کرکٹ (Sports)
   {
     category: 'sports',
     categoryUrdu: 'کھیل',
-    name: 'کھیل و کرکٹ نیوز',
+    name: 'روزنامہ جنگ اسپورٹس',
+    url: 'https://jang.com.pk/rss/1/3',
+  },
+  {
+    category: 'sports',
+    categoryUrdu: 'کھیل',
+    name: 'گوگل نیوز کھیل و کرکٹ',
     url: 'https://news.google.com/rss/search?q=%DA%A9%DA%BE%DB%8C%D9%84+%DA%A9%D8%B1%DA%A9%D9%B5&hl=ur&gl=PK&ceid=PK:ur',
   },
-  // 5. ٹیکنالوجی (Technology)
+
+  // ۵. کاروبار و معیشت (Business)
+  {
+    category: 'business',
+    categoryUrdu: 'کاروبار',
+    name: 'کاروبار و معیشت نیوز',
+    url: 'https://news.google.com/rss/search?q=%DA%A9%D8%A7%D8%B1%D9%88%D8%A8%D8%A7%D8%B1+%D9%85%D8%B9%DB%8C%D8%B4%D8%AA&hl=ur&gl=PK&ceid=PK:ur',
+  },
+
+  // ۶. سائنس و ٹیکنالوجی (Technology)
   {
     category: 'technology',
     categoryUrdu: 'ٹیکنالوجی',
     name: 'سائنس و ٹیکنالوجی',
     url: 'https://news.google.com/rss/search?q=%D9%B9%DB%8C%DA%A9%D9%86%D8%A7%D9%84%D9%88%D8%AC%DB%8C+%D8%B3%D8%A7%D8%A6%D9%86%D8%B3&hl=ur&gl=PK&ceid=PK:ur',
   },
-  // 6. کاروبار و معیشت (Business)
+
+  // ۷. صحت و طب (Health)
   {
-    category: 'business',
-    categoryUrdu: 'کاروبار',
-    name: 'کاروبار و معیشت',
-    url: 'https://news.google.com/rss/search?q=%DA%A9%D8%A7%D8%B1%D9%88%D8%A8%D8%A7%D8%B1+%D9%85%D8%B9%DB%8C%D8%B4%D8%AA&hl=ur&gl=PK&ceid=PK:ur',
+    category: 'health',
+    categoryUrdu: 'صحت',
+    name: 'طبی و صحت رہنمائی',
+    url: 'https://news.google.com/rss/search?q=%D8%B5%D8%AD%D8%AA+%D8%B7%D8%A8&hl=ur&gl=PK&ceid=PK:ur',
   },
-  // 7. عالمی (International)
-  {
-    category: 'international',
-    categoryUrdu: 'عالمی',
-    name: 'عالمی خبریں',
-    url: 'https://news.google.com/rss/search?q=%D8%B9%D8%A7%D9%84%D9%85%DB%8C+%D8%AE%D8%A8%D8%B1%DB%8C%DA%BA&hl=ur&gl=PK&ceid=PK:ur',
-  },
-  // 8. عجیب و دلچسپ (Weird & Amazing News)
+
+  // ۸. عجیب و دلچسپ خبریں (Weird News)
   {
     category: 'weird',
     categoryUrdu: 'عجیب و دلچسپ',
     name: 'گوگل نیوز عجیب و غریب',
     url: 'https://news.google.com/rss/search?q=%D8%B9%D8%AC%DB%8C%D8%A8+%D9%88+%D8%BA%D8%B1%DB%8C%D8%A8&hl=ur&gl=PK&ceid=PK:ur',
-  },
-  {
-    category: 'weird',
-    categoryUrdu: 'عجیب و دلچسپ',
-    name: 'حیرت انگیز خبریں',
-    url: 'https://news.google.com/rss/search?q=%D8%AD%DB%8C%D8%B1%D8%AA+%D8%A7%D9%86%DA%AF%DB%8C%D8%B2+%D8%AE%D8%A8%D8%B1%DB%8C%DA%BA&hl=ur&gl=PK&ceid=PK:ur',
   },
 ];
 
@@ -255,16 +295,34 @@ async function handleFetchNews(request: Request) {
       const xmlText = await response.text();
       const parsedXml = await parseStringPromise(xmlText, { explicitArray: false });
 
-      const channel = parsedXml?.rss?.channel;
-      if (!channel || !channel.item) continue;
+      // RSS 2.0 چینل یا Atom فیڈ انٹریز کو یکساں فارمیٹ میں لانا
+      const rawItems = parsedXml?.rss?.channel?.item
+        ? (Array.isArray(parsedXml.rss.channel.item) ? parsedXml.rss.channel.item : [parsedXml.rss.channel.item])
+        : parsedXml?.feed?.entry
+        ? (Array.isArray(parsedXml.feed.entry) ? parsedXml.feed.entry : [parsedXml.feed.entry])
+        : [];
 
-      const rawItems = Array.isArray(channel.item) ? channel.item : [channel.item];
-      // ہر فیڈ سے تازہ ترین 2 اہم ترین مضامین منتخب کریں تاکہ ٹائم آؤٹ نہ ہو
-      const topItems = rawItems.slice(0, 2);
+      if (!rawItems || rawItems.length === 0) continue;
+
+      // ہر فیڈ سے تازہ ترین ۲ سے ۳ اہم ترین مضامین منتخب کریں
+      const topItems = rawItems.slice(0, 3);
       results.itemsFound += topItems.length;
 
       for (const item of topItems) {
-        const itemLink = item.link || item.guid?._ || item.guid;
+        // لنک نکالنے کی لچکدار اور محفوظ ترین منطق
+        let itemLink = '';
+        if (typeof item.link === 'string') {
+          itemLink = item.link;
+        } else if (item.link?._) {
+          itemLink = item.link._;
+        } else if (item.link?.$?.href) {
+          itemLink = item.link.$.href;
+        } else if (typeof item.guid === 'string') {
+          itemLink = item.guid;
+        } else if (item.guid?._) {
+          itemLink = item.guid._;
+        }
+
         if (!itemLink || typeof itemLink !== 'string') continue;
 
         // پہلے چیک کریں کہ آیا یہ خبر ڈیٹا بیس میں پہلے سے موجود ہے
@@ -274,8 +332,12 @@ async function handleFetchNews(request: Request) {
           continue;
         }
 
-        const rawTitle = stripHtml(item.title || 'تازہ ترین اہم خبر');
-        const rawDesc = stripHtml(item.description || item['content:encoded'] || rawTitle);
+        const rawTitle = stripHtml(
+          (typeof item.title === 'string' ? item.title : item.title?._) || 'تازہ ترین اہم خبر'
+        );
+        const rawDesc = stripHtml(
+          item.description || item['content:encoded'] || item.summary?._ || item.summary || rawTitle
+        );
 
         // جیمینائی یا صحافتی انجن سے خبر کو دوبارہ لکھیں
         const rewritten = await rewriteNewsWithGemini(

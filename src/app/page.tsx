@@ -79,13 +79,15 @@ export default async function HomePage() {
   const heroArticle = prioritizedNews[0];
   const sidebarArticles = prioritizedNews.slice(1, 6);
 
-  // پس منظر میں از خود سنک چیک: اگر آخری خبر کو ۲۰ منٹ سے زیادہ ہو چکے ہوں تو نئی خبریں خودکار حاصل ہوں
+  // پس منظر میں از خود سنک چیک: اگر آخری خبر کو ۱۵ منٹ سے زیادہ ہو چکے ہوں تو نئی خبریں خودکار حاصل ہوں
   const latestArticleTime = prioritizedNews[0] ? new Date(prioritizedNews[0].published_at || prioritizedNews[0].created_at).getTime() : 0;
   const minutesSinceLastArticle = (Date.now() - latestArticleTime) / (1000 * 60);
 
-  if (minutesSinceLastArticle > 20) {
+  if (minutesSinceLastArticle > 15) {
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dastras-five.vercel.app';
     fetch(`${siteUrl}/api/cron/fetch-news?key=dastaras_cron_secret_2026`, {
+      method: 'POST',
+      headers: { 'x-cron-secret': 'dastaras_cron_secret_2026' },
       cache: 'no-store',
     }).catch(() => {});
   }

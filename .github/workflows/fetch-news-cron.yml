@@ -1,9 +1,9 @@
-name: Automated News Fetch Cron (Every 30 Mins)
+name: Automated News Fetch Cron (Every 15 Mins)
 
 on:
   schedule:
-    # ہر 30 منٹ بعد خودکار چلے گا
-    - cron: '*/30 * * * *'
+    # ہر 15 منٹ بعد بلا تعطل خودکار چلے گا
+    - cron: '*/15 * * * *'
   workflow_dispatch:
 
 jobs:
@@ -12,4 +12,4 @@ jobs:
     steps:
       - name: Ping News Fetch API
         run: |
-          curl -s -X POST "https://dastras-five.vercel.app/api/cron/fetch-news" || echo "API pinged"
+          curl -s -X POST "https://dastras-five.vercel.app/api/cron/fetch-news?key=dastaras_cron_secret_2026" -H "x-cron-secret: dastaras_cron_secret_2026" || echo "API pinged"
