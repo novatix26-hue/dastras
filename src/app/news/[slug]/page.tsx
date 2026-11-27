@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: NewsDetailPageProps): Promise
 
   if (!news) {
     return {
-      title: 'خبر نہیں مل سکی | پورٹل دسترس',
+      title: 'خبر نہیں مل سکی | دسترس',
       description: 'مطلوبہ خبر دستیاب نہیں ہے یا حذف کر دی گئی ہے۔',
     };
   }
@@ -49,7 +49,7 @@ export async function generateMetadata({ params }: NewsDetailPageProps): Promise
       title,
       description,
       url: articleUrl,
-      siteName: 'پورٹل دسترس',
+      siteName: 'دسترس',
       locale: 'ur_PK',
       type: 'article',
       publishedTime: news.published_at,
@@ -110,7 +110,7 @@ export default async function NewsDetailPage({ params }: NewsDetailPageProps) {
     ],
     publisher: {
       '@type': 'Organization',
-      name: 'پورٹل دسترس',
+      name: 'دسترس',
       logo: {
         '@type': 'ImageObject',
         url: `${siteUrl}/logo.png`,
@@ -120,7 +120,7 @@ export default async function NewsDetailPage({ params }: NewsDetailPageProps) {
     articleBody: news.content,
   };
 
-  const shareText = encodeURIComponent(`*${news.title}*\nپورٹل دسترس پر مکمل خبر پڑھیں:\n${articleUrl}`);
+  const shareText = encodeURIComponent(`*${news.title}*\nدسترس پر مکمل خبر پڑھیں:\n${articleUrl}`);
   const whatsappUrl = `https://api.whatsapp.com/send?text=${shareText}`;
   const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(articleUrl)}`;
 

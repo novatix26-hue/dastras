@@ -6,14 +6,15 @@
 
 @font-face {
   font-family: 'Jameel Noori Nastaleeq';
-  src: url('/fonts/JameelNooriNastaleeq.ttf') format('truetype');
+  src: url('/fonts/JameelNooriNastaleeq.woff') format('woff'),
+       url('https://cdn.jsdelivr.net/gh/tariq-abdullah/urdu-web-font-CDN/JameelNooriNastaleeq.woff') format('woff');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
 }
 
 :root {
-  --font-nastaleeq: 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', serif;
+  --font-nastaleeq: 'Jameel Noori Nastaleeq', 'Noto Nastaliq Urdu', serif;
   --font-sans-ur: 'Vazirmatn', 'Noto Sans Arabic', system-ui, -apple-system, sans-serif;
   --bg-warm: #F8FAFC;
   --color-primary: #065F46;
@@ -52,7 +53,7 @@ html {
 .animate-marquee {
   display: inline-flex;
   white-space: nowrap;
-  animation: marqueeRTL 65s linear infinite;
+  animation: marqueeRTL 110s linear infinite;
 }
 
 .animate-marquee:hover {

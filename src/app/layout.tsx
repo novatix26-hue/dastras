@@ -6,14 +6,14 @@ import Footer from '@/components/Footer';
 import { ToastProvider } from '@/components/Toast';
 
 export const metadata: Metadata = {
-  title: 'دسترس پورٹل | پاکستان اور آزاد کشمیر کا سب سے بڑا اردو نیوز و انفارمیشن پورٹل',
-  description: 'پاکستان اور آزاد جموں و کشمیر کی بریکنگ نیوز، سیاست، کھیل، صحت، سائنس و ٹیکنالوجی، موبائل ریٹس، لائیو موسم اور اوقاتِ نماز کا مصدقہ اردو پلیٹ فارم۔',
-  keywords: ['دسترس', 'اردو پورٹل', 'پاکستان نیوز', 'آزاد کشمیر', 'موبائل ریٹس', 'موسم پاکستان', 'اوقات نماز', 'اردو پوائنٹ'],
+  title: 'دسترس | پاکستان، آزاد کشمیر اور دنیا بھر کی تازہ ترین خبریں و معلومات',
+  description: 'پاکستان، آزاد جموں و کشمیر اور دنیا بھر کی بریکنگ نیوز، سیاست، کھیل، صحت، سائنس و ٹیکنالوجی، موبائل ریٹس، لائیو پٹرول قیمتیں، موسم اور اوقاتِ نماز کا مصدقہ اردو پلیٹ فارم۔',
+  keywords: ['دسترس', 'اردو خبریں', 'پاکستان نیوز', 'آزاد کشمیر', 'عالمی خبریں', 'موبائل ریٹس', 'پٹرول ریٹس', 'موسم پاکستان', 'اوقات نماز'],
   authors: [{ name: 'دسترس ٹیم' }],
   metadataBase: new URL('https://dastaras.pk'),
   openGraph: {
-    title: 'دسترس پورٹل - پاکستان اور آزاد کشمیر کا معتبر اردو پورٹل',
-    description: 'پاکستان اور آزاد جموں و کشمیر سے لمحہ بہ لمحہ باوثوق بریکنگ نیوز، موبائل فون ریٹس اور لائیو یوٹیلیٹیز',
+    title: 'دسترس - پاکستان، آزاد کشمیر اور دنیا بھر کا معتبر اردو نیٹ ورک',
+    description: 'پاکستان، آزاد جموں و کشمیر اور دنیا بھر سے لمحہ بہ لمحہ باوثوق بریکنگ نیوز، موبائل فون ریٹس اور لائیو یوٹیلیٹیز',
     type: 'website',
     locale: 'ur_PK',
   },
@@ -28,6 +28,12 @@ export default function RootLayout({
     <html lang="ur" dir="rtl">
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
+        <meta name="google-adsense-account" content={process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || 'ca-pub-XXXXXXXXXXXXXXXX'} />
+        <script
+          async
+          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || 'ca-pub-XXXXXXXXXXXXXXXX'}`}
+          crossOrigin="anonymous"
+        />
       </head>
       <body className="font-urdu-sans bg-slate-50 text-slate-900 min-h-screen flex flex-col selection:bg-emerald-100 selection:text-emerald-900">
         <ToastProvider>

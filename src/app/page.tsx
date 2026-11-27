@@ -17,6 +17,7 @@ import PrayerWidget from '@/components/PrayerWidget';
 import CurrencyWidget from '@/components/CurrencyWidget';
 import PetrolWidget from '@/components/PetrolWidget';
 import MobileCard from '@/components/MobileCard';
+import AdSlot from '@/components/AdSlot';
 import { 
   Flame, 
   Clock, 
@@ -173,6 +174,9 @@ export default async function HomePage() {
             </div>
           </div>
         </section>
+
+        {/* اشتہار بینر ۱ (گوگل ایڈسینس لیڈر بورڈ) */}
+        <AdSlot format="horizontal" slotId="home-top-leaderboard" />
 
         {/* 3. لائیو یوٹیلیٹیز گرڈ: موسم، اوقاتِ نماز، کرنسی ریٹس */}
         <section className="space-y-4">
@@ -447,10 +451,10 @@ export default async function HomePage() {
         <section className="bg-gradient-to-r from-emerald-900 to-slate-900 text-white rounded-3xl p-8 sm:p-12 shadow-lg space-y-6">
           <div className="text-center max-w-2xl mx-auto space-y-2">
             <h2 className="text-2xl sm:text-4xl font-extrabold font-nastaleeq">
-              پورٹل دسترس کی عوامی و تعلیمی خدمات
+              دسترس کی عوامی، تعلیمی و عالمی خدمات
             </h2>
             <p className="text-sm text-emerald-200">
-              پاکستان اور آزاد جموں و کشمیر کے شہریوں کے لیے مفید روابط اور ڈائریکٹریز
+              پاکستان، آزاد کشمیر اور دنیا بھر کے قارئین کے لیے باوثوق خبریں، ڈائریکٹریز اور معلوماتی خدمات
             </p>
           </div>
 

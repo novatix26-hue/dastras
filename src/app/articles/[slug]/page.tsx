@@ -9,6 +9,7 @@ import { getArticleBySlug, getArticles } from '@/lib/supabaseClient';
 import { formatUrduDate } from '@/lib/utils';
 import { useToast } from '@/components/Toast';
 import ArticleCard from '@/components/ArticleCard';
+import AdSlot from '@/components/AdSlot';
 import { 
   Calendar, 
   User, 
@@ -55,7 +56,7 @@ export default function ArticleDetailPage() {
 
   const shareOnWhatsApp = () => {
     if (!article) return;
-    const text = encodeURIComponent(`*${article.title}*\nپورٹل دسترس پر مکمل تحریر پڑھیں:\n${currentUrl}`);
+    const text = encodeURIComponent(`*${article.title}*\nدسترس پر مکمل تحریر پڑھیں:\n${currentUrl}`);
     window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
   };
 
@@ -155,6 +156,9 @@ export default function ArticleDetailPage() {
           <p className="italic">{article.summary}</p>
         </div>
       )}
+
+      {/* مضمون کے اندر کا اشتہار (Google In-Article Ad) */}
+      <AdSlot format="fluid" layoutKey="-6t+ed+2i-1n-4w" slotId="article-in-feed" />
 
       {/* مکمل تحریر کا مواد - باوقار نستعلیق پڑھنے کا انداز */}
       <div className="prose prose-lg max-w-none text-portal-slate text-xl sm:text-2xl leading-[2.5] space-y-6 pt-2 font-nastaleeq">

@@ -76,7 +76,7 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
   return {
     title: meta.title,
     description: meta.desc,
-    keywords: [meta.urduName, 'اردو خبریں', 'دسترس پورٹل', 'پاکستان'],
+    keywords: [meta.urduName, 'اردو خبریں', 'دسترس', 'پاکستان'],
   };
 }
 

@@ -75,10 +75,10 @@ export default function Navbar() {
             </div>
             <div className="flex flex-col border-r border-slate-200 pr-3 mr-1">
               <span className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight font-nastaleeq group-hover:text-emerald-700 transition-colors">
-                دسترس پورٹل
+                دسترس
               </span>
               <span className="text-[11px] text-slate-500 font-urdu-sans hidden sm:inline -mt-1 font-semibold">
-                پاکستان و کشمیر کا باوثوق معلوماتی و نیوز مرکز
+                پاکستان، آزاد کشمیر اور دنیا بھر کی باوثوق خبروں کا مرکز
               </span>
             </div>
           </Link>

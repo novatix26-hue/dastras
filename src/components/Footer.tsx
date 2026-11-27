@@ -27,10 +27,10 @@ export default function Footer() {
                   className="object-contain p-1"
                 />
               </div>
-              <span className="text-2xl font-black text-white font-nastaleeq">پورٹل دسترس</span>
+              <span className="text-2xl font-black text-white font-nastaleeq">دسترس</span>
             </div>
             <p className="text-base text-slate-400 leading-relaxed">
-              پاکستان اور آزاد جموں و کشمیر کے لیے معلومات، تعلیم اور سرکاری و نجی رابطوں کا معتبر ترین کثیر المقاصد اردو پورٹل۔
+              پاکستان، آزاد جموں و کشمیر اور دنیا بھر کے قارئین کے لیے معلومات، تعلیم، تجزیات اور باوثوق خبروں کا معتبر ترین کثیر المقاصد اردو نیٹ ورک۔
             </p>
             <div className="flex items-center gap-2 text-sm text-slate-400 pt-2">
               <MapPin className="w-4 h-4 text-emerald-400 flex-shrink-0" />
@@ -132,21 +132,50 @@ export default function Footer() {
             </p>
             <div className="flex flex-col gap-2">
               <Link 
-                href="/submit" 
+                href="/contact" 
                 className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-emerald-800 hover:bg-emerald-700 text-white text-sm font-semibold transition-colors border border-emerald-700"
               >
-                <span>اپنا مضمون یا تجویز بھیجیں</span>
+                <span>ہم سے رابطہ کریں</span>
+              </Link>
+              <Link 
+                href="/submit" 
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-semibold transition-colors"
+              >
+                <span>مضمون جمع کروائیں</span>
               </Link>
             </div>
           </div>
         </div>
 
-        {/* کاپی رائٹ */}
-        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-500">
-          <p>© {new Date().getFullYear()} پورٹل دسترس۔ جملہ حقوق محفوظ ہیں۔</p>
-          <p className="flex items-center gap-1.5">
-            <span>پاکستان اور کشمیر کے عوام کے لیے خلوص نیت کے ساتھ تیار کردہ</span>
-            <Heart className="w-4 h-4 text-red-500 fill-red-500" />
+        {/* پالیسی لنکس اور کاپی رائٹ */}
+        <div className="pt-8 border-t border-slate-800/80 flex flex-col md:flex-row items-center justify-between gap-4 text-xs sm:text-sm text-slate-400">
+          <p>© {new Date().getFullYear()} دسترس۔ جملہ حقوق محفوظ ہیں۔</p>
+
+          <div className="flex items-center flex-wrap gap-4 text-xs">
+            <Link href="/about" className="hover:text-emerald-400 transition-colors">
+              ہمارے متعلق
+            </Link>
+            <span>•</span>
+            <Link href="/privacy-policy" className="hover:text-emerald-400 transition-colors">
+              پرائیویسی پالیسی
+            </Link>
+            <span>•</span>
+            <Link href="/terms" className="hover:text-emerald-400 transition-colors">
+              شرائط و ضوابط
+            </Link>
+            <span>•</span>
+            <Link href="/contact" className="hover:text-emerald-400 transition-colors">
+              ہم سے رابطہ
+            </Link>
+            <span>•</span>
+            <Link href="/sitemap.xml" className="hover:text-emerald-400 transition-colors">
+              سائٹ میپ
+            </Link>
+          </div>
+
+          <p className="flex items-center gap-1.5 text-xs">
+            <span>پاکستان، کشمیر اور دنیا بھر کے قارئین کے لیے تیار کردہ</span>
+            <Heart className="w-3.5 h-3.5 text-red-500 fill-red-500" />
           </p>
         </div>
       </div>
