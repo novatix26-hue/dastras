@@ -407,6 +407,7 @@ export async function insertArticleDirect(
       const payload = {
         title: article.title,
         slug: article.slug,
+        author_name: (article as any).author_name || article.source_name || 'دسترس ایڈیٹوریل',
         summary: article.summary || null,
         content: article.content,
         category: article.category,
