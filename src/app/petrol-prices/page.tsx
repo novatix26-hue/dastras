@@ -3,7 +3,8 @@ import type { Metadata } from 'next';
 import { getLivePetrolPrices } from '@/lib/api/petrol';
 import PetrolClientView from './PetrolClientView';
 
-export const revalidate = 600; // 10 منٹ کیشنگ
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export const metadata: Metadata = {
   title: 'پاکستان میں پٹرول اور ڈیزل کی تازہ ترین قیمتیں | اوگرا نوٹیفکیشن | دسترس',
