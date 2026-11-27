@@ -1,9 +1,14 @@
 {
   "crons": [
     {
+      "path": "/api/cron/fetch-news",
+      "schedule": "*/30 * * * *"
+    },
+    {
       "path": "/api/admissions/sync",
       "schedule": "0 0 * * *"
     }
   ]
 }
+
 

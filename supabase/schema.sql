@@ -274,3 +274,65 @@ INSERT INTO admissions (title, university_name, degree_level, deadline, apply_ur
 ('انڈرگریجویٹ داخلے 2025-26', 'نیشنل یونیورسٹی آف سائنسز اینڈ ٹیکنالوجی (NUST)', 'بی ایس پروگرامز', '2025-04-30', 'https://nust.edu.pk/admissions', 'این ای ٹی ٹیسٹ کی رجسٹریشن کا آغاز۔ ملک بھر کے ٹیسٹ سینٹرز پر امتحانات۔', true),
 ('ایم فل اور پی ایچ ڈی اسپیشل داخلہ سیشن', 'قائد اعظم یونیورسٹی اسلام آباد', 'ایم فل و پی ایچ ڈی', '2025-03-25', 'https://qau.edu.pk/admissions', 'نیچرل سائنسز اور سوشل سائنسز ڈیپارٹمنٹس میں اعلیٰ تعلیمی وظائف کے ساتھ داخلے۔', true)
 ON CONFLICT DO NOTHING;
+
+-- ============================================================================
+-- 6. جدول: تازہ ترین و بریکنگ نیوز (News Articles)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS news_articles (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    title TEXT NOT NULL,
+    slug TEXT NOT NULL UNIQUE,
+    summary TEXT,
+    content TEXT NOT NULL,
+    category TEXT NOT NULL DEFAULT 'پاکستان' CHECK (category IN ('پاکستان', 'آزاد کشمیر', 'دنیا', 'معیشت')),
+    image_url TEXT,
+    source_name TEXT,
+    source_url TEXT NOT NULL UNIQUE,
+    meta_description TEXT,
+    published_at TIMESTAMPTZ DEFAULT NOW(),
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_news_slug ON news_articles(slug);
+CREATE INDEX IF NOT EXISTS idx_news_category ON news_articles(category);
+CREATE INDEX IF NOT EXISTS idx_news_published_at ON news_articles(published_at DESC);
+CREATE INDEX IF NOT EXISTS idx_news_source_url ON news_articles(source_url);
+
+ALTER TABLE news_articles ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "عوامی قارئین تمام خبریں دیکھ سکتے ہیں" ON news_articles;
+CREATE POLICY "عوامی قارئین تمام خبریں دیکھ سکتے ہیں" ON news_articles 
+    FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "سروس رول اور ایڈمن خبریں درج کر سکتے ہیں" ON news_articles;
+CREATE POLICY "سروس رول اور ایڈمن خبریں درج کر سکتے ہیں" ON news_articles 
+    FOR ALL USING (true) WITH CHECK (true);
+
+INSERT INTO news_articles (title, slug, summary, content, category, image_url, source_name, source_url, meta_description, published_at)
+VALUES
+(
+    'آزاد کشمیر: مظفرآباد اور وادی نیلم میں سیاحتی سیزن کی تیاریاں، سڑکوں کی بحالی کا کام تیز',
+    'azad-kashmir-muzaffarabad-neelum-valley-tourism-season-roads-restoration',
+    'حکومت آزاد کشمیر نے سیاحوں کی آمد کے پیش نظر اہم شاہراہوں کی بحالی اور سہولیات کے منصوبوں پر کام کی رفتار بڑھانے کی ہدایت کی ہے۔',
+    'مظفرآباد: حکومت آزاد جموں و کشمیر نے آئندہ سیاحتی سیزن کے پیش نظر وادی نیلم، جہلم ویلی، اور راولاکوٹ سمیت تمام اہم سیاحتی مقامات پر رابطہ سڑکوں کی مرمت اور بحالی کا عمل تیز کرنے کے احکامات جاری کیے ہیں۔\n\nمحکمہ سیاحت اور ہائی ویز ڈپارٹمنٹ کے ترجمان کے مطابق سیاحوں کی آسانی کے لیے لینڈ سلائیڈنگ کے حساس مقامات پر ہیوی مشینری مستقل تعینات کی جا رہی ہے جبکہ ہوٹلز ایسوسی ایشن کے ساتھ مل کر نرخ ناموں کی سخت نگرانی کا طریقہ کار وضع کیا گیا ہے۔',
+    'آزاد کشمیر',
+    'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80',
+    'کشمیر نیوز نیٹ ورک',
+    'https://dastaras.pk/news/source/ajk-tourism-roads-2025',
+    'آزاد کشمیر میں وادی نیلم اور مظفرآباد کے سیاحتی مقامات کے لیے رابطہ سڑکوں کی بحالی اور سیاحوں کی حفاظت کے اقدامات تیز کر دیے گئے ہیں۔',
+    NOW() - INTERVAL '2 hours'
+),
+(
+    'اسٹیٹ بینک آف پاکستان کا اہم فیصلہ: ڈیجیٹل بینکنگ اور راست سسٹم میں نئی سہولیات کا آغاز',
+    'state-bank-pakistan-digital-banking-raast-system-new-features',
+    'مرکزی بینک نے تاجروں اور عوام کے درمیان فوری ڈیجیٹل لین دین کے لیے راست سسٹم میں کیو آر کوڈ اور فری ٹرانسفر کا دائرہ کار مزید وسیع کر دیا۔',
+    'اسلام آباد: اسٹیٹ بینک آف پاکستان نے ملکی معیشت کو کیش لیس اور ڈیجیٹل خطوط پر استوار کرنے کے لیے "راست" پیمنٹ گیٹ وے کے تحت مزید انقلابی سہولیات متعارف کروا دی ہیں۔\n\nمرکزی بینک کے اعلامیے کے مطابق اب چھوٹے دکاندار اور گھریلو کاروبار بغیر کسی فیس اور اضافی بینک چارجز کے فوری کیو آر کوڈ کے ذریعے رقوم وصول کر سکیں گے۔ اس اقدام کا مقصد ملک کے غیر دستاویزی تجارتی شعبے کو رسمی معیشت کے دائرے میں لانا ہے۔',
+    'پاکستان',
+    'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&w=1200&q=80',
+    'قومی معاشی بیورو',
+    'https://dastaras.pk/news/source/sbp-raast-expansion-2025',
+    'اسٹیٹ بینک آف پاکستان نے راست ڈیجیٹل سسٹم میں مفت کیو آر ادائیگیوں کا آغاز کر دیا، تاجروں اور عوام کے لیے آسانیاں۔',
+    NOW() - INTERVAL '4 hours'
+)
+ON CONFLICT (source_url) DO NOTHING;
+

@@ -4,14 +4,16 @@ import {
   DirectoryContact, 
   University, 
   Admission, 
-  Newspaper 
+  Newspaper,
+  NewsArticle 
 } from './types';
 import { 
   INITIAL_ARTICLES, 
   INITIAL_CONTACTS, 
   INITIAL_UNIVERSITIES, 
   INITIAL_ADMISSIONS, 
-  INITIAL_NEWSPAPERS 
+  INITIAL_NEWSPAPERS,
+  INITIAL_NEWS_ARTICLES 
 } from './mockData';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -276,3 +278,107 @@ export async function getNewspapers(): Promise<Newspaper[]> {
   }
   return getStorage<Newspaper[]>('newspapers', INITIAL_NEWSPAPERS);
 }
+
+// -------------------------------------------------------------
+// تازہ ترین بریکنگ نیوز (Breaking News) سروسز
+// -------------------------------------------------------------
+export async function getNewsArticles(category?: string, limit: number = 30): Promise<NewsArticle[]> {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      let query = supabase
+        .from('news_articles')
+        .select('*')
+        .order('published_at', { ascending: false })
+        .limit(limit);
+
+      if (category && category !== 'تمام') {
+        query = query.eq('category', category);
+      }
+
+      const { data, error } = await query;
+      if (!error && data && data.length > 0) {
+        return data as NewsArticle[];
+      }
+    } catch (e) {
+      console.warn('Supabase news_articles fetch failed, fallback', e);
+    }
+  }
+
+  const allNews = getStorage<NewsArticle[]>('news_articles', INITIAL_NEWS_ARTICLES);
+  if (category && category !== 'تمام') {
+    return allNews.filter((n) => n.category === category).slice(0, limit);
+  }
+  return allNews.slice(0, limit);
+}
+
+export async function getNewsArticleBySlug(slug: string): Promise<NewsArticle | null> {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('news_articles')
+        .select('*')
+        .eq('slug', slug)
+        .single();
+
+      if (!error && data) {
+        return data as NewsArticle;
+      }
+    } catch (e) {
+      console.warn('Supabase news single fetch failed, fallback', e);
+    }
+  }
+
+  const allNews = getStorage<NewsArticle[]>('news_articles', INITIAL_NEWS_ARTICLES);
+  return allNews.find((n) => n.slug === slug) || null;
+}
+
+export async function checkNewsArticleExists(sourceUrl: string): Promise<boolean> {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { data } = await supabase
+        .from('news_articles')
+        .select('id')
+        .eq('source_url', sourceUrl)
+        .limit(1);
+
+      return Boolean(data && data.length > 0);
+    } catch (e) {
+      console.warn('Supabase checkNewsArticleExists failed', e);
+    }
+  }
+
+  const allNews = getStorage<NewsArticle[]>('news_articles', INITIAL_NEWS_ARTICLES);
+  return allNews.some((n) => n.source_url === sourceUrl);
+}
+
+export async function insertNewsArticle(
+  article: Omit<NewsArticle, 'id' | 'created_at'>
+): Promise<{ success: boolean; data?: NewsArticle; error?: string }> {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('news_articles')
+        .insert([article])
+        .select()
+        .single();
+
+      if (!error && data) {
+        return { success: true, data: data as NewsArticle };
+      }
+      return { success: false, error: error?.message };
+    } catch (e: any) {
+      return { success: false, error: e?.message };
+    }
+  }
+
+  const newArt: NewsArticle = {
+    ...article,
+    id: 'news-' + Date.now(),
+    created_at: new Date().toISOString(),
+  };
+
+  const existing = getStorage<NewsArticle[]>('news_articles', INITIAL_NEWS_ARTICLES);
+  setStorage('news_articles', [newArt, ...existing]);
+  return { success: true, data: newArt };
+}
+

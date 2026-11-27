@@ -12,7 +12,8 @@ import {
   GraduationCap, 
   Newspaper as NewspaperIcon, 
   ShieldCheck,
-  Compass
+  Compass,
+  Flame
 } from 'lucide-react';
 
 export default function Navbar() {
@@ -21,7 +22,8 @@ export default function Navbar() {
 
   const navLinks = [
     { href: '/', label: 'ہوم پورٹل', icon: Compass },
-    { href: '/articles', label: 'خبریں و مضامین', icon: BookOpen },
+    { href: '/news', label: 'بریکنگ نیوز', icon: Flame, isLive: true },
+    { href: '/articles', label: 'مضامین و سائنس', icon: BookOpen },
     { href: '/directory', label: 'رابطہ ڈائریکٹری', icon: PhoneCall },
     { href: '/admissions', label: 'جامعات و داخلے', icon: GraduationCap },
     { href: '/newspapers', label: 'قومی اخبارات', icon: NewspaperIcon },
@@ -58,14 +60,17 @@ export default function Navbar() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-lg transition-all duration-200 ${
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-lg transition-all duration-200 relative ${
                     isActive
                       ? 'text-portal-primary font-bold bg-portal-primaryLight'
                       : 'text-portal-slate/85 hover:text-portal-primary hover:bg-slate-50'
                   }`}
                 >
-                  <Icon className="w-4 h-4 opacity-75" />
+                  <Icon className={`w-4 h-4 ${item.isLive ? 'text-red-600 animate-pulse' : 'opacity-75'}`} />
                   <span>{item.label}</span>
+                  {item.isLive && (
+                    <span className="w-2 h-2 rounded-full bg-red-600 animate-ping absolute top-2 left-2"></span>
+                  )}
                 </Link>
               );
             })}
@@ -105,14 +110,21 @@ export default function Navbar() {
                   key={item.href}
                   href={item.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-lg font-medium transition-colors ${
+                  className={`flex items-center justify-between px-4 py-3 rounded-xl text-lg font-medium transition-colors ${
                     isActive
                       ? 'bg-portal-primaryLight text-portal-primary font-bold'
                       : 'text-portal-slate hover:bg-slate-50'
                   }`}
                 >
-                  <Icon className="w-5 h-5 text-portal-primary/80" />
-                  <span>{item.label}</span>
+                  <div className="flex items-center gap-3">
+                    <Icon className={`w-5 h-5 ${item.isLive ? 'text-red-600' : 'text-portal-primary/80'}`} />
+                    <span>{item.label}</span>
+                  </div>
+                  {item.isLive && (
+                    <span className="px-2 py-0.5 rounded text-xs font-bold bg-red-100 text-red-700 animate-pulse">
+                      لائیو
+                    </span>
+                  )}
                 </Link>
               );
             })}

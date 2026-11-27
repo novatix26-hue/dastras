@@ -87,3 +87,19 @@ export interface Newspaper {
   featured: boolean;
   created_at?: string;
 }
+
+export interface NewsArticle {
+  id: string;
+  title: string;
+  slug: string;
+  summary?: string | null;
+  content: string;
+  category: 'پاکستان' | 'آزاد کشمیر' | 'دنیا' | 'معیشت';
+  image_url?: string | null;
+  source_name?: string | null;
+  source_url: string;
+  meta_description?: string | null;
+  published_at: string;
+  created_at?: string;
+}
+

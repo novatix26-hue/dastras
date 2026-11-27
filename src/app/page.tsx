@@ -4,7 +4,8 @@ import {
   getArticles, 
   getDirectoryContacts, 
   getAdmissions, 
-  getNewspapers 
+  getNewspapers,
+  getNewsArticles 
 } from '@/lib/supabaseClient';
 import HeroSearch from '@/components/HeroSearch';
 import ArticleCard from '@/components/ArticleCard';
@@ -21,17 +22,21 @@ import {
   ShieldAlert,
   Flame,
   PenTool,
-  CheckCircle2
+  CheckCircle2,
+  Radio,
+  Clock
 } from 'lucide-react';
+import { formatUrduDate } from '@/lib/utils';
 
 export const revalidate = 60; // 1 منٹ کی کیشنگ برائے پرفارمنس
 
 export default async function HomePage() {
-  const [articles, contacts, admissions, newspapers] = await Promise.all([
+  const [articles, contacts, admissions, newspapers, breakingNews] = await Promise.all([
     getArticles('approved'),
     getDirectoryContacts(),
     getAdmissions(),
     getNewspapers(),
+    getNewsArticles(undefined, 4),
   ]);
 
   const featuredArticle = articles[0];
@@ -39,6 +44,7 @@ export default async function HomePage() {
   const emergencyContacts = contacts.filter((c) => c.emergency).slice(0, 4);
   const featuredAdmissions = admissions.slice(0, 3);
   const featuredNewspapers = newspapers.slice(0, 6);
+  const latestBreaking = breakingNews[0];
 
   return (
     <div className="space-y-16 sm:space-y-24">
@@ -94,6 +100,27 @@ export default async function HomePage() {
       </section>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-20">
+        {/* بریکنگ نیوز بینر */}
+        {latestBreaking && (
+          <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4 -mt-6 sm:-mt-10 relative z-20">
+            <div className="flex items-center gap-3">
+              <span className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/20 text-white font-extrabold text-sm whitespace-nowrap animate-pulse">
+                <Radio className="w-4 h-4" />
+                <span>بریکنگ نیوز</span>
+              </span>
+              <Link href={`/news/${latestBreaking.slug}`} className="hover:underline font-bold text-lg sm:text-xl truncate">
+                {latestBreaking.title}
+              </Link>
+            </div>
+            <Link
+              href="/news"
+              className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-white text-red-600 font-bold text-sm hover:bg-red-50 transition-colors whitespace-nowrap self-start sm:self-auto"
+            >
+              <span>تمام خبریں پڑھیں</span>
+              <ArrowLeft className="w-4 h-4" />
+            </Link>
+          </div>
+        )}
         {/* 2. خبریں، سائنس، انٹرنیٹ اور مضامین سیکشن */}
         <section className="space-y-8">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-portal-border pb-4">
