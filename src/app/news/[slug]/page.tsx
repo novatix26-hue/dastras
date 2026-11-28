@@ -23,7 +23,12 @@ interface NewsDetailPageProps {
 
 // 1. ڈائنامک میٹا ڈیٹا برائے ایس ای او (Dynamic SEO Metadata)
 export async function generateMetadata({ params }: NewsDetailPageProps): Promise<Metadata> {
-  const news = await getNewsArticleBySlug(params.slug);
+  let decodedSlug = params.slug;
+  try {
+    decodedSlug = decodeURIComponent(params.slug);
+  } catch {}
+
+  const news = await getNewsArticleBySlug(decodedSlug);
 
   if (!news) {
     return {
@@ -32,8 +37,8 @@ export async function generateMetadata({ params }: NewsDetailPageProps): Promise
     };
   }
 
-  const siteUrl = 'https://dastaras.pk';
-  const articleUrl = `${siteUrl}/news/${news.slug}`;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dastras-five.vercel.app';
+  const articleUrl = `${siteUrl}/news/${encodeURIComponent(news.slug)}`;
   const title = `${news.title} | تازہ ترین خبریں | دسترس`;
   const description = news.meta_description || news.summary || news.content.slice(0, 160);
   const imageUrl = news.image_url || 'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?auto=format&fit=crop&w=1200&q=80';
@@ -74,14 +79,19 @@ export async function generateMetadata({ params }: NewsDetailPageProps): Promise
 export const revalidate = 60; // 1 منٹ کیشنگ
 
 export default async function NewsDetailPage({ params }: NewsDetailPageProps) {
-  const news = await getNewsArticleBySlug(params.slug);
+  let decodedSlug = params.slug;
+  try {
+    decodedSlug = decodeURIComponent(params.slug);
+  } catch {}
+
+  const news = await getNewsArticleBySlug(decodedSlug);
 
   if (!news) {
     notFound();
   }
 
-  const siteUrl = 'https://dastaras.pk';
-  const articleUrl = `${siteUrl}/news/${news.slug}`;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dastras-five.vercel.app';
+  const articleUrl = `${siteUrl}/news/${encodeURIComponent(news.slug)}`;
 
   // اسی زمرے سے مزید خبریں
   const allRelated = await getNewsArticles(news.category, 4);

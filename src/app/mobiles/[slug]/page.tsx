@@ -23,7 +23,11 @@ interface MobileDetailPageProps {
 }
 
 export async function generateMetadata({ params }: MobileDetailPageProps): Promise<Metadata> {
-  const mobile = await getMobileBySlug(params.slug);
+  let decodedSlug = params.slug;
+  try {
+    decodedSlug = decodeURIComponent(params.slug);
+  } catch {}
+  const mobile = await getMobileBySlug(decodedSlug);
   if (!mobile) {
     return {
       title: 'موبائل ماڈل نہیں ملا | دسترس',
@@ -50,7 +54,11 @@ export async function generateMetadata({ params }: MobileDetailPageProps): Promi
 export const revalidate = 120; // 2 منٹ کیشنگ
 
 export default async function MobileDetailPage({ params }: MobileDetailPageProps) {
-  const mobile = await getMobileBySlug(params.slug);
+  let decodedSlug = params.slug;
+  try {
+    decodedSlug = decodeURIComponent(params.slug);
+  } catch {}
+  const mobile = await getMobileBySlug(decodedSlug);
   if (!mobile) {
     notFound();
   }

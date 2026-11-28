@@ -115,15 +115,56 @@ export async function getArticles(options?: string | {
 }
 
 export async function getArticleBySlug(slug: string): Promise<Article | null> {
+  if (!slug) return null;
+
+  let decodedSlug = slug;
+  try {
+    decodedSlug = decodeURIComponent(slug);
+  } catch {}
+
+  const possibleSlugs = Array.from(new Set([slug, decodedSlug].filter(Boolean)));
+
   if (isSupabaseConfigured && supabase) {
     try {
+      // 1. سب سے پہلے articles جدول میں چیک کریں
       const { data, error } = await supabase
         .from('articles')
         .select('*')
-        .eq('slug', slug)
-        .single();
-      if (!error && data) {
-        return data as Article;
+        .in('slug', possibleSlugs)
+        .limit(1);
+
+      if (!error && data && data.length > 0) {
+        return data[0] as Article;
+      }
+
+      // 2. اگر articles میں نہ ملے تو news_articles جدول میں تلاش کریں
+      const { data: newsData, error: newsErr } = await supabase
+        .from('news_articles')
+        .select('*')
+        .in('slug', possibleSlugs)
+        .limit(1);
+
+      if (!newsErr && newsData && newsData.length > 0) {
+        const item = newsData[0];
+        return {
+          id: item.id,
+          title: item.title,
+          slug: item.slug,
+          summary: item.summary,
+          content: item.content,
+          category: item.category as ArticleCategory,
+          image_url: item.image_url,
+          author_name: item.source_name || 'نمائندہ دسترس',
+          created_at: item.published_at || item.created_at,
+          published_at: item.published_at || item.created_at,
+          views: 120,
+          status: 'approved',
+          source_name: item.source_name,
+          source_url: item.source_url,
+          meta_description: item.meta_description,
+          keywords: item.keywords,
+          is_breaking: true,
+        } as Article;
       }
     } catch (e) {
       console.warn('Supabase single fetch failed, fallback', e);
@@ -131,7 +172,34 @@ export async function getArticleBySlug(slug: string): Promise<Article | null> {
   }
 
   const articles = getStorage<Article[]>('articles', INITIAL_ARTICLES);
-  return articles.find(a => a.slug === slug) || null;
+  const found = articles.find(a => possibleSlugs.includes(a.slug));
+  if (found) return found;
+
+  const allNews = getStorage<NewsArticle[]>('news_articles', INITIAL_NEWS_ARTICLES);
+  const foundNews = allNews.find(n => possibleSlugs.includes(n.slug));
+  if (foundNews) {
+    return {
+      id: foundNews.id,
+      title: foundNews.title,
+      slug: foundNews.slug,
+      summary: foundNews.summary,
+      content: foundNews.content,
+      category: foundNews.category as ArticleCategory,
+      image_url: foundNews.image_url,
+      author_name: foundNews.source_name || 'نمائندہ دسترس',
+      created_at: foundNews.published_at || foundNews.created_at,
+      published_at: foundNews.published_at || foundNews.created_at,
+      views: 120,
+      status: 'approved',
+      source_name: foundNews.source_name,
+      source_url: foundNews.source_url,
+      meta_description: foundNews.meta_description,
+      keywords: foundNews.keywords || [],
+      is_breaking: true,
+    } as Article;
+  }
+
+  return null;
 }
 
 export async function submitArticle(article: Omit<Article, 'id' | 'views' | 'created_at' | 'status'>): Promise<{ success: boolean; message: string; article?: Article }> {
@@ -344,16 +412,51 @@ export async function getNewsArticles(category?: string, limit: number = 30): Pr
 }
 
 export async function getNewsArticleBySlug(slug: string): Promise<NewsArticle | null> {
+  if (!slug) return null;
+
+  let decodedSlug = slug;
+  try {
+    decodedSlug = decodeURIComponent(slug);
+  } catch {}
+
+  const possibleSlugs = Array.from(new Set([slug, decodedSlug].filter(Boolean)));
+
   if (isSupabaseConfigured && supabase) {
     try {
       const { data, error } = await supabase
         .from('news_articles')
         .select('*')
-        .eq('slug', slug)
-        .single();
+        .in('slug', possibleSlugs)
+        .limit(1);
 
-      if (!error && data) {
-        return data as NewsArticle;
+      if (!error && data && data.length > 0) {
+        return data[0] as NewsArticle;
+      }
+
+      // articles جدول میں بھی دیکھ لیں اگر news_articles میں نہ ملے
+      const { data: artData } = await supabase
+        .from('articles')
+        .select('*')
+        .in('slug', possibleSlugs)
+        .limit(1);
+
+      if (artData && artData.length > 0) {
+        const item = artData[0];
+        return {
+          id: item.id,
+          title: item.title,
+          slug: item.slug,
+          summary: item.summary,
+          content: item.content,
+          category: item.category,
+          image_url: item.image_url,
+          source_name: item.author_name || item.source_name || 'دسترس نیوز',
+          source_url: item.source_url,
+          meta_description: item.meta_description,
+          keywords: item.keywords,
+          published_at: item.published_at || item.created_at,
+          created_at: item.created_at,
+        } as NewsArticle;
       }
     } catch (e) {
       console.warn('Supabase news single fetch failed, fallback', e);
@@ -361,7 +464,30 @@ export async function getNewsArticleBySlug(slug: string): Promise<NewsArticle | 
   }
 
   const allNews = getStorage<NewsArticle[]>('news_articles', INITIAL_NEWS_ARTICLES);
-  return allNews.find((n) => n.slug === slug) || null;
+  const foundNews = allNews.find((n) => possibleSlugs.includes(n.slug));
+  if (foundNews) return foundNews;
+
+  const articles = getStorage<Article[]>('articles', INITIAL_ARTICLES);
+  const foundArt = articles.find(a => possibleSlugs.includes(a.slug));
+  if (foundArt) {
+    return {
+      id: foundArt.id,
+      title: foundArt.title,
+      slug: foundArt.slug,
+      summary: foundArt.summary,
+      content: foundArt.content,
+      category: foundArt.category,
+      image_url: foundArt.image_url,
+      source_name: foundArt.author_name || 'دسترس نیوز',
+      source_url: foundArt.source_url,
+      meta_description: foundArt.meta_description,
+      keywords: foundArt.keywords,
+      published_at: foundArt.published_at || foundArt.created_at,
+      created_at: foundArt.created_at,
+    } as NewsArticle;
+  }
+
+  return null;
 }
 
 export async function checkNewsArticleExists(sourceUrl: string): Promise<boolean> {
@@ -513,16 +639,23 @@ export async function getMobiles(filters?: {
 }
 
 export async function getMobileBySlug(slug: string): Promise<MobileModel | null> {
+  if (!slug) return null;
+  let decodedSlug = slug;
+  try {
+    decodedSlug = decodeURIComponent(slug);
+  } catch {}
+  const possibleSlugs = Array.from(new Set([slug, decodedSlug].filter(Boolean)));
+
   if (isSupabaseConfigured && supabase) {
     try {
       const { data, error } = await supabase
         .from('mobiles')
         .select('*')
-        .eq('slug', slug)
-        .single();
+        .in('slug', possibleSlugs)
+        .limit(1);
 
-      if (!error && data) {
-        return data as MobileModel;
+      if (!error && data && data.length > 0) {
+        return data[0] as MobileModel;
       }
     } catch (e) {
       console.warn('Supabase mobile by slug failed', e);

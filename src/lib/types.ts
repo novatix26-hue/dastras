@@ -139,11 +139,13 @@ export interface NewsArticle {
   slug: string;
   summary?: string | null;
   content: string;
-  category: 'پاکستان' | 'آزاد کشمیر' | 'دنیا' | 'معیشت';
+  category: 'پاکستان' | 'آزاد کشمیر' | 'دنیا' | 'معیشت' | ArticleCategory;
   image_url?: string | null;
   source_name?: string | null;
   source_url: string;
   meta_description?: string | null;
+  keywords?: string[] | null;
+  author_name?: string | null;
   published_at: string;
   created_at?: string;
 }
