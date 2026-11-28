@@ -30,7 +30,11 @@ export default async function PetrolWidget() {
         {topFuels.map((fuel) => (
           <div
             key={fuel.id}
-            className="flex items-center justify-between p-2.5 rounded-xl bg-white/5 border border-white/10 text-xs hover:bg-white/10 transition-colors"
+            className={`flex items-center justify-between p-2.5 rounded-xl border text-xs transition-colors ${
+              fuel.category === 'gas'
+                ? 'bg-amber-500/15 border-amber-500/40 hover:bg-amber-500/25 ring-1 ring-amber-500/20'
+                : 'bg-white/5 border-white/10 hover:bg-white/10'
+            }`}
           >
             <div>
               <div className="font-bold text-slate-100 flex items-center gap-1.5">

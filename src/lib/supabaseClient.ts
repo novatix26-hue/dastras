@@ -382,6 +382,115 @@ export async function getNewspapers(): Promise<Newspaper[]> {
 // -------------------------------------------------------------
 // تازہ ترین بریکنگ نیوز (Breaking News) سروسز
 // -------------------------------------------------------------
+/**
+ * بریکنگ نیوز ٹکر کے لیے تمام معتبر ذرائع (articles اور news_articles) سے تازہ ترین سرخیاں حاصل کریں
+ * بغیر کسی تکرار کے ۲۰ سے ۲۵ منفرد، تازہ اور اہم خبریں فراہم کرتا ہے
+ */
+export async function getTickerArticles(limit: number = 25): Promise<Article[]> {
+  const combined: Article[] = [];
+
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const [artRes, newsRes] = await Promise.allSettled([
+        supabase
+          .from('articles')
+          .select('*')
+          .or('status.eq.approved,status.is.null')
+          .order('published_at', { ascending: false })
+          .limit(limit),
+        supabase
+          .from('news_articles')
+          .select('*')
+          .order('published_at', { ascending: false })
+          .limit(limit),
+      ]);
+
+      if (artRes.status === 'fulfilled' && artRes.value.data) {
+        for (const item of artRes.value.data) {
+          if (item && item.title && item.category !== 'kids' && !item.category?.includes('کہانی')) {
+            combined.push(item as Article);
+          }
+        }
+      }
+
+      if (newsRes.status === 'fulfilled' && newsRes.value.data) {
+        for (const item of newsRes.value.data) {
+          if (item && item.title && item.category !== 'kids' && !item.category?.includes('کہانی')) {
+            combined.push({
+              id: item.id,
+              title: item.title,
+              slug: item.slug,
+              summary: item.summary,
+              content: item.content,
+              category: item.category as ArticleCategory,
+              image_url: item.image_url,
+              author_name: item.source_name || 'دسترس نیوز',
+              created_at: item.published_at || item.created_at,
+              published_at: item.published_at || item.created_at,
+              views: 120,
+              status: 'approved',
+              is_breaking: true,
+            } as Article);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('getTickerArticles Supabase fetch failed', e);
+    }
+  }
+
+  // اگر ڈیٹا بیس سے خبریں کم ملیں تو لوکل اور موک ڈیٹا شامل کریں
+  if (combined.length < 15) {
+    const localNews = getStorage<NewsArticle[]>('news_articles', INITIAL_NEWS_ARTICLES);
+    for (const item of localNews) {
+      if (item && item.title) {
+        combined.push({
+          id: item.id,
+          title: item.title,
+          slug: item.slug,
+          summary: item.summary,
+          content: item.content,
+          category: item.category as ArticleCategory,
+          image_url: item.image_url,
+          author_name: item.source_name || 'دسترس نیوز',
+          created_at: item.published_at,
+          published_at: item.published_at,
+          views: 120,
+          status: 'approved',
+          is_breaking: true,
+        } as Article);
+      }
+    }
+
+    const localArticles = getStorage<Article[]>('articles', INITIAL_ARTICLES);
+    for (const item of localArticles) {
+      if (item && item.title && item.category !== 'kids' && !item.category?.includes('کہانی')) {
+        combined.push(item);
+      }
+    }
+  }
+
+  // عنوان اور سلگ کی بنیاد پر تکرار (Duplicates) کا مکمل خاتمہ
+  const seenTitles = new Set<string>();
+  const seenSlugs = new Set<string>();
+  const uniqueArticles: Article[] = [];
+
+  for (const item of combined) {
+    if (!item.title) continue;
+    const cleanTitle = item.title.trim().replace(/\s+/g, ' ');
+    const cleanSlug = item.slug ? item.slug.trim() : '';
+
+    if (!seenTitles.has(cleanTitle) && (!cleanSlug || !seenSlugs.has(cleanSlug))) {
+      seenTitles.add(cleanTitle);
+      if (cleanSlug) seenSlugs.add(cleanSlug);
+      uniqueArticles.push(item);
+    }
+    if (uniqueArticles.length >= limit) break;
+  }
+
+  return uniqueArticles;
+}
+
 export async function getNewsArticles(category?: string, limit: number = 30): Promise<NewsArticle[]> {
   if (isSupabaseConfigured && supabase) {
     try {

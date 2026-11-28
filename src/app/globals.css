@@ -75,19 +75,19 @@ html {
   word-spacing: 0.08em;
 }
 
-@keyframes marqueeRTL {
+@keyframes marqueeUrdu {
   0% {
     transform: translate3d(0, 0, 0);
   }
   100% {
-    transform: translate3d(-50%, 0, 0);
+    transform: translate3d(50%, 0, 0);
   }
 }
 
 .animate-marquee {
   display: inline-flex;
   white-space: nowrap;
-  animation: marqueeRTL 60s linear infinite;
+  animation: marqueeUrdu 85s linear infinite;
   animation-delay: 0s;
   will-change: transform;
 }

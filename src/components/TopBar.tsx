@@ -74,16 +74,16 @@ export default async function TopBar({ initialPetrolPrice, initialDieselPrice, i
             <span>USD: روپے {usdRate}</span>
           </Link>
 
-          {/* پٹرول ریٹ */}
+          {/* پٹرول، ڈیزل و ایل پی جی لائیو سرکاری ریٹ (تمام اسکرینز پر نمایاں) */}
           <Link 
             href="/petrol-prices" 
-            className="flex items-center gap-1.5 hover:text-amber-400 transition-colors"
-            title="پاکستان میں پٹرول، ڈیزل اور ایل پی جی کے سرکاری ریٹس"
+            className="flex items-center gap-1.5 hover:text-amber-400 transition-colors bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-700/60"
+            title="پاکستان میں پٹرول، ڈیزل اور ایل پی جی کے سرکاری نوٹیفائیڈ ریٹس"
           >
             <span className="text-amber-400 font-bold">⛽</span>
-            <span>پٹرول: روپے {petrolPrice}</span>
-            <span className="text-slate-400 hidden xl:inline">| ڈیزل: روپے {dieselPrice}</span>
-            <span className="text-amber-300 hidden 2xl:inline">| ایل پی جی: روپے {lpgPrice}</span>
+            <span className="text-slate-100">پٹرول: روپے {petrolPrice}</span>
+            <span className="text-slate-400 hidden sm:inline">| ڈیزل: روپے {dieselPrice}</span>
+            <span className="text-amber-300 font-bold">| ایل پی جی: روپے {lpgPrice}</span>
           </Link>
 
           {/* فوری روابط */}

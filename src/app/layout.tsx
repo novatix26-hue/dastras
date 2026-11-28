@@ -6,7 +6,7 @@ import Ticker from '@/components/Ticker';
 import Footer from '@/components/Footer';
 import { ToastProvider } from '@/components/Toast';
 import { getLivePetrolPrices } from '@/lib/api/petrol';
-import { getArticles } from '@/lib/supabaseClient';
+import { getTickerArticles } from '@/lib/supabaseClient';
 
 export const metadata: Metadata = {
   title: 'دسترس | پاکستان، آزاد کشمیر اور دنیا بھر کی تازہ ترین خبریں و معلومات',
@@ -22,6 +22,8 @@ export const metadata: Metadata = {
   },
 };
 
+export const revalidate = 60; // خودکار 1 منٹ کیش اپڈیٹ
+
 export default async function RootLayout({
   children,
 }: {
@@ -29,7 +31,7 @@ export default async function RootLayout({
 }) {
   const [petrolData, tickerArticles] = await Promise.all([
     getLivePetrolPrices(),
-    getArticles({ status: 'approved', limit: 15 }),
+    getTickerArticles(25),
   ]);
 
   const petrolPrice = petrolData?.items.find((i) => i.id === 'petrol')?.pricePerLiter || 312;
@@ -52,7 +54,7 @@ export default async function RootLayout({
           <TopBar initialPetrolPrice={petrolPrice} initialDieselPrice={dieselPrice} initialLpgPrice={lpgPrice} />
           {/* مستقل گلوبل ہیڈر اور بریکنگ نیوز ٹکر (ہر صفحے پر مستقل فعال اور 0ms فوری اسکرولنگ) */}
           <div className="sticky top-0 z-40 bg-white shadow-sm">
-            <Navbar petrolPrice={petrolPrice} />
+            <Navbar petrolPrice={petrolPrice} lpgPrice={lpgPrice} />
             <Ticker initialArticles={tickerArticles} />
           </div>
           <main className="flex-1 pb-16">

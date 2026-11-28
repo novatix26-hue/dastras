@@ -17,7 +17,7 @@ export default function Ticker({ initialArticles = [] }: TickerProps) {
     if (initialArticles && initialArticles.length > 0) {
       setArticles(initialArticles);
       try {
-        localStorage.setItem('dastaras_ticker_cache', JSON.stringify(initialArticles.slice(0, 15)));
+        localStorage.setItem('dastaras_ticker_cache', JSON.stringify(initialArticles.slice(0, 25)));
       } catch {}
     } else {
       try {
@@ -37,16 +37,25 @@ export default function Ticker({ initialArticles = [] }: TickerProps) {
     (item) => item.category !== 'kids' && !item.category?.includes('کہانی')
   );
 
-  if (filteredArticles.length === 0) return null;
+  // عنوان کی تکرار کا مکمل خاتمہ
+  const seen = new Set<string>();
+  const uniqueArticles = filteredArticles.filter((item) => {
+    const t = item.title?.trim().replace(/\s+/g, ' ');
+    if (!t || seen.has(t)) return false;
+    seen.add(t);
+    return true;
+  });
+
+  if (uniqueArticles.length === 0) return null;
 
   // ہموار لامتناہی اسکرولنگ (Seamless Infinite Marquee) کے لیے دوہری لسٹ
-  const displayArticles = [...filteredArticles, ...filteredArticles];
+  const displayArticles = [...uniqueArticles, ...uniqueArticles];
 
   return (
     <div className="bg-gradient-to-r from-red-700 via-red-600 to-rose-700 text-white font-urdu-sans shadow-md border-b border-red-800/80 overflow-hidden select-none">
       <div className="max-w-7xl mx-auto flex items-center">
-        {/* بریکنگ نیوز بیج */}
-        <div className="bg-red-950/90 px-3 sm:px-4 py-2 sm:py-2.5 flex items-center gap-2 font-bold text-xs sm:text-sm whitespace-nowrap z-20 shadow-md border-l border-red-800">
+        {/* بریکنگ نیوز بیج (پاکستانی ٹی وی چینلز کا معروف انداز) */}
+        <div className="bg-red-950/95 px-3 sm:px-4 py-2 sm:py-2.5 flex items-center gap-2 font-bold text-xs sm:text-sm whitespace-nowrap z-20 shadow-md border-l border-red-800 shrink-0">
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-300"></span>
@@ -56,16 +65,16 @@ export default function Ticker({ initialArticles = [] }: TickerProps) {
           <span className="sm:hidden font-bold">تازہ ترین:</span>
         </div>
 
-        {/* بغیر وقفے فوری رواں مارکی (0ms Instant Delay Infinite Marquee) */}
-        <div className="flex-1 overflow-hidden py-2 sm:py-2.5 relative">
-          <div className="animate-marquee flex items-center gap-8 text-xs sm:text-sm font-medium">
+        {/* بغیر وقفے بائیں سے دائیں رواں مارکی (Left to Right Pakistani TV Style Continuous Marquee) */}
+        <div className="flex-1 overflow-hidden py-2 sm:py-2.5 relative" dir="rtl">
+          <div className="animate-marquee flex items-center gap-8 text-xs sm:text-sm font-medium w-max shrink-0">
             {displayArticles.map((item, idx) => (
               <Link
                 key={`${item.id || 'tick'}-${idx}`}
                 href={`/articles/${item.slug}`}
-                className="inline-flex items-center gap-2.5 hover:text-yellow-200 transition-colors cursor-pointer shrink-0 group"
+                className="inline-flex items-center gap-2.5 hover:text-yellow-200 transition-colors cursor-pointer shrink-0 group whitespace-nowrap"
               >
-                <span className="text-yellow-300 font-black text-sm">●</span>
+                <span className="text-yellow-300 font-bold text-xs">◆</span>
                 <span className="group-hover:underline font-nastaleeq text-sm sm:text-base leading-snug">
                   {item.title}
                 </span>
@@ -77,7 +86,7 @@ export default function Ticker({ initialArticles = [] }: TickerProps) {
         {/* تمام دیکھیں بٹن */}
         <Link
           href="/category/pakistan"
-          className="hidden md:flex items-center gap-1 bg-red-900/90 hover:bg-red-950 px-3.5 py-2 text-xs font-bold whitespace-nowrap z-20 transition-colors border-r border-red-800 shadow-sm"
+          className="hidden md:flex items-center gap-1 bg-red-900/90 hover:bg-red-950 px-3.5 py-2 text-xs font-bold whitespace-nowrap z-20 transition-colors border-r border-red-800 shadow-sm shrink-0"
         >
           <span>تمام خبریں</span>
           <ChevronLeft className="w-3.5 h-3.5" />

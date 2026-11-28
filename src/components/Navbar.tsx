@@ -29,9 +29,10 @@ import {
 
 interface NavbarProps {
   petrolPrice?: number;
+  lpgPrice?: number;
 }
 
-export default function Navbar({ petrolPrice = 312 }: NavbarProps = {}) {
+export default function Navbar({ petrolPrice = 312, lpgPrice = 294.08 }: NavbarProps = {}) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
 
@@ -86,10 +87,11 @@ export default function Navbar({ petrolPrice = 312 }: NavbarProps = {}) {
           <div className="flex items-center gap-2 sm:gap-3">
             <Link
               href="/petrol-prices"
-              className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 text-xs font-bold font-urdu-sans border border-amber-200/80 transition-colors"
+              className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 text-xs font-bold font-urdu-sans border border-amber-200/80 transition-colors shadow-sm"
+              title="پٹرول و ایل پی جی سرکاری ریٹس"
             >
               <Fuel className="w-4 h-4 text-amber-700" />
-              <span>پٹرول: {petrolPrice} روپے</span>
+              <span>پٹرول: {petrolPrice} | ایل پی جی: {lpgPrice} روپے</span>
             </Link>
 
             <Link
