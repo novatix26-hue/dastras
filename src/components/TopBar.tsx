@@ -9,19 +9,21 @@ import { CloudSun, DollarSign, Calendar, Clock, ShieldCheck, PhoneCall, Fuel } f
 interface TopBarProps {
   initialPetrolPrice?: number;
   initialDieselPrice?: number;
+  initialLpgPrice?: number;
 }
 
-export default async function TopBar({ initialPetrolPrice, initialDieselPrice }: TopBarProps = {}) {
+export default async function TopBar({ initialPetrolPrice, initialDieselPrice, initialLpgPrice }: TopBarProps = {}) {
   const [weather, currency, prayer, petrolData] = await Promise.all([
     getLiveWeather('Islamabad'),
     getLiveCurrencyRates(),
     getLivePrayerTimings('Islamabad'),
-    initialPetrolPrice && initialDieselPrice ? Promise.resolve(null) : getLivePetrolPrices(),
+    initialPetrolPrice && initialDieselPrice && initialLpgPrice ? Promise.resolve(null) : getLivePetrolPrices(),
   ]);
 
   const usdRate = currency?.rates.find((r) => r.code === 'USD')?.rateAgainstPKR || 276.18;
   const petrolPrice = initialPetrolPrice || petrolData?.items.find((i) => i.id === 'petrol')?.pricePerLiter || 312.00;
   const dieselPrice = initialDieselPrice || petrolData?.items.find((i) => i.id === 'diesel')?.pricePerLiter || 346.00;
+  const lpgPrice = initialLpgPrice || petrolData?.items.find((i) => i.id === 'lpg')?.pricePerLiter || 294.08;
 
   // موجودہ عیسوی تاریخ اردو میں
   const now = new Date();
@@ -76,11 +78,12 @@ export default async function TopBar({ initialPetrolPrice, initialDieselPrice }:
           <Link 
             href="/petrol-prices" 
             className="flex items-center gap-1.5 hover:text-amber-400 transition-colors"
-            title="پاکستان میں پٹرول اور ڈیزل کے ریٹس"
+            title="پاکستان میں پٹرول، ڈیزل اور ایل پی جی کے سرکاری ریٹس"
           >
             <span className="text-amber-400 font-bold">⛽</span>
             <span>پٹرول: روپے {petrolPrice}</span>
             <span className="text-slate-400 hidden xl:inline">| ڈیزل: روپے {dieselPrice}</span>
+            <span className="text-amber-300 hidden 2xl:inline">| ایل پی جی: روپے {lpgPrice}</span>
           </Link>
 
           {/* فوری روابط */}

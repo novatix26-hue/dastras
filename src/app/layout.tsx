@@ -28,6 +28,7 @@ export default async function RootLayout({
   const petrolData = await getLivePetrolPrices();
   const petrolPrice = petrolData?.items.find((i) => i.id === 'petrol')?.pricePerLiter || 312;
   const dieselPrice = petrolData?.items.find((i) => i.id === 'diesel')?.pricePerLiter || 346;
+  const lpgPrice = petrolData?.items.find((i) => i.id === 'lpg')?.pricePerLiter || 294.08;
 
   return (
     <html lang="ur" dir="rtl">
@@ -42,7 +43,7 @@ export default async function RootLayout({
       </head>
       <body className="font-urdu-sans bg-slate-50 text-slate-900 min-h-screen flex flex-col selection:bg-emerald-100 selection:text-emerald-900">
         <ToastProvider>
-          <TopBar initialPetrolPrice={petrolPrice} initialDieselPrice={dieselPrice} />
+          <TopBar initialPetrolPrice={petrolPrice} initialDieselPrice={dieselPrice} initialLpgPrice={lpgPrice} />
           <Navbar petrolPrice={petrolPrice} />
           <main className="flex-1 pb-16">
             {children}

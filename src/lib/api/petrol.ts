@@ -16,7 +16,7 @@ export interface PetrolPricesData {
   effectiveFrom: string;
 }
 
-// اوگرا (OGRA) و پاکستان اسٹیٹ آئل (PSO) کے موجودہ نافذ العمل سرکاری و مارکیٹ ریٹس
+// اوگرا (OGRA) و پاکستان اسٹیٹ آئل (PSO) کے موجودہ سرکاری و نوٹیفائیڈ بیس لائن ریٹس
 export const OFFICIAL_PETROL_PRICES: PetrolProduct[] = [
   {
     id: 'petrol',
@@ -37,6 +37,26 @@ export const OFFICIAL_PETROL_PRICES: PetrolProduct[] = [
     previousPrice: 348.00,
     unit: 'روپے فی لیٹر',
     category: 'fuel',
+  },
+  {
+    id: 'lpg',
+    nameUrdu: 'ایل پی جی (فی کلوگرام)',
+    nameEn: 'LPG Gas (Per Kg)',
+    pricePerLiter: 294.08,
+    change: +2.10,
+    previousPrice: 291.98,
+    unit: 'روپے فی کلوگرام',
+    category: 'gas',
+  },
+  {
+    id: 'lpg_cylinder',
+    nameUrdu: 'ایل پی جی گھریلو سلنڈر (11.8 کلو)',
+    nameEn: 'LPG Domestic Cylinder (11.8 Kg)',
+    pricePerLiter: 3470.09,
+    change: +24.80,
+    previousPrice: 3445.29,
+    unit: 'روپے فی سلنڈر',
+    category: 'gas',
   },
   {
     id: 'hobc',
@@ -68,94 +88,151 @@ export const OFFICIAL_PETROL_PRICES: PetrolProduct[] = [
     unit: 'روپے فی لیٹر',
     category: 'fuel',
   },
-  {
-    id: 'lpg',
-    nameUrdu: 'ایل پی جی (گھریلو سلنڈر)',
-    nameEn: 'LPG Domestic Gas',
-    pricePerLiter: 251.30,
-    change: +2.10,
-    previousPrice: 249.20,
-    unit: 'روپے فی کلوگرام',
-    category: 'gas',
-  },
 ];
 
+// میموری کیش برائے ہائی پرفارمنس و عدم انحصار
+let cachedPricesData: PetrolPricesData | null = null;
+let lastFetchTimestamp = 0;
+
 /**
- * پی ایس او (PSO) کی لائیو ویب سائٹ سے خودکار سرکاری قیمتیں حاصل کرنے کا سمارٹ فنکشن
+ * پی ایس او (PSO) اور اوگرا (OGRA) ریگولیٹڈ ذرائع سے پٹرول، ڈیزل و ایل پی جی کی خودکار لائیو قیمتیں
  */
 export async function getLivePetrolPrices(): Promise<PetrolPricesData> {
+  const now = Date.now();
+  // اگر 10 منٹ کے اندر تازہ ڈیٹا موصول ہو چکا ہو تو کیش استعمال کریں
+  if (cachedPricesData && now - lastFetchTimestamp < 10 * 60 * 1000) {
+    return cachedPricesData;
+  }
+
   let items = [...OFFICIAL_PETROL_PRICES];
-  let isLiveFetched = false;
+  let isLivePetrolFetched = false;
+  let isLiveLpgFetched = false;
 
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3500);
+    // پی ایس او اور ایل پی جی ذرائع متوازی فیچ ہوں تاکہ کوئی تاخیر نہ ہو
+    const [psoRes, lpgRes] = await Promise.allSettled([
+      fetch('https://psopk.com/', {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 DastarasBot/1.0',
+        },
+        signal: AbortSignal.timeout(4000),
+        next: { revalidate: 1800 },
+      }),
+      fetch('https://lpggasprice.pk/', {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 DastarasBot/1.0',
+        },
+        signal: AbortSignal.timeout(4000),
+        next: { revalidate: 1800 },
+      }),
+    ]);
 
-    const res = await fetch('https://psopk.com/', {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 DastarasBot/1.0',
-      },
-      signal: controller.signal,
-      next: { revalidate: 3600 }, // ہر گھنٹے بعد خودکار لائیو چیک
-    });
-    clearTimeout(timeoutId);
+    // ۱. پٹرول و ڈیزل پارسنگ (PSO Live Rates)
+    if (psoRes.status === 'fulfilled' && psoRes.value.ok) {
+      try {
+        const html = await psoRes.value.text();
+        const premierMatch = html.match(/alt="Euro5 Premier"[^>]*>[\s\S]*?<p class="fptitle">Rs\.?\s*([0-9]+(?:\.[0-9]+)?)\s*\/Ltr<\/p>/i);
+        const dieselMatch = html.match(/cetane5\.png"[\s\S]*?<p class="fptitle">Rs\.?\s*([0-9]+(?:\.[0-9]+)?)\s*\/Ltr<\/p>/i);
+        const hobcMatch = html.match(/alt="Euro5 Octane \+"[\s\S]*?<p class="fptitle">Rs\.?\s*([0-9]+(?:\.[0-9]+)?)\s*\/Ltr<\/p>/i);
 
-    if (res.ok) {
-      const html = await res.text();
-      // پٹرول (Euro5 Premier)
-      const premierMatch = html.match(/alt="Euro5 Premier"[^>]*>[\s\S]*?<p class="fptitle">Rs\.?\s*([0-9]+(?:\.[0-9]+)?)\s*\/Ltr<\/p>/i);
-      // ڈیزل (Euro5 Cetane)
-      const dieselMatch = html.match(/cetane5\.png"[\s\S]*?<p class="fptitle">Rs\.?\s*([0-9]+(?:\.[0-9]+)?)\s*\/Ltr<\/p>/i);
-      // ہائی اوکٹین (Euro5 Octane +)
-      const hobcMatch = html.match(/alt="Euro5 Octane \+"[\s\S]*?<p class="fptitle">Rs\.?\s*([0-9]+(?:\.[0-9]+)?)\s*\/Ltr<\/p>/i);
+        const livePetrol = premierMatch ? parseFloat(premierMatch[1]) : 0;
+        const liveDiesel = dieselMatch ? parseFloat(dieselMatch[1]) : 0;
+        const liveHobc = hobcMatch ? parseFloat(hobcMatch[1]) : 0;
 
-      const livePetrol = premierMatch ? parseFloat(premierMatch[1]) : 0;
-      const liveDiesel = dieselMatch ? parseFloat(dieselMatch[1]) : 0;
-      const liveHobc = hobcMatch ? parseFloat(hobcMatch[1]) : 0;
+        if (livePetrol > 100 || liveDiesel > 100) {
+          items = items.map((p) => {
+            if (p.id === 'petrol' && livePetrol > 0) {
+              return {
+                ...p,
+                pricePerLiter: livePetrol,
+                change: livePetrol !== 312.00 ? Math.round((livePetrol - 312.00) * 100) / 100 : p.change,
+              };
+            }
+            if (p.id === 'diesel' && liveDiesel > 0) {
+              return {
+                ...p,
+                pricePerLiter: liveDiesel,
+                change: liveDiesel !== 346.00 ? Math.round((liveDiesel - 346.00) * 100) / 100 : p.change,
+              };
+            }
+            if (p.id === 'hobc' && liveHobc > 0) {
+              return {
+                ...p,
+                pricePerLiter: liveHobc,
+                change: liveHobc !== 399.00 ? Math.round((liveHobc - 399.00) * 100) / 100 : p.change,
+              };
+            }
+            return p;
+          });
+          isLivePetrolFetched = true;
+        }
+      } catch (parseErr) {
+        console.warn('PSO Parse error:', parseErr);
+      }
+    }
 
-      if (livePetrol > 100 || liveDiesel > 100) {
-        items = items.map((p) => {
-          if (p.id === 'petrol' && livePetrol > 0) {
-            return {
-              ...p,
-              pricePerLiter: livePetrol,
-              change: livePetrol !== 312.00 ? livePetrol - 312.00 : p.change,
-            };
-          }
-          if (p.id === 'diesel' && liveDiesel > 0) {
-            return {
-              ...p,
-              pricePerLiter: liveDiesel,
-              change: liveDiesel !== 346.00 ? liveDiesel - 346.00 : p.change,
-            };
-          }
-          if (p.id === 'hobc' && liveHobc > 0) {
-            return {
-              ...p,
-              pricePerLiter: liveHobc,
-              change: liveHobc !== 399.00 ? liveHobc - 399.00 : p.change,
-            };
-          }
-          return p;
-        });
-        isLiveFetched = true;
+    // ۲. ایل پی جی اوگرا نوٹیفائیڈ قیمتوں کی پارسنگ (LPG Live Rates)
+    if (lpgRes.status === 'fulfilled' && lpgRes.value.ok) {
+      try {
+        const lpgHtml = await lpgRes.value.text();
+
+        // 1. فی کلوگرام قیمت تلاش کریں
+        const kgMatch = lpgHtml.match(/"priceSpecification"[\s\S]*?"price":\s*"([0-9.]+)"/i) ||
+                        lpgHtml.match(/Rs\.?\s*([0-9]+(?:\.[0-9]+)?)\s*per\s*kg/i);
+        const liveLpgKg = kgMatch ? parseFloat(kgMatch[1]) : 0;
+
+        // 2. 11.8 کلو گھریلو سلنڈر قیمت تلاش کریں
+        const cylMatch = lpgHtml.match(/Rs\.?\s*([0-9,]+(?:\.[0-9]+)?)\s*for a domestic 11\.8kg cylinder/i) ||
+                         lpgHtml.match(/domestic\s*11\.8\s*kg\s*cylinder[^\d]*Rs\.?\s*([0-9,]+(?:\.[0-9]+)?)/i);
+        const liveLpgCyl = cylMatch 
+          ? parseFloat(cylMatch[1].replace(/,/g, '')) 
+          : (liveLpgKg > 0 ? Math.round(liveLpgKg * 11.8 * 100) / 100 : 0);
+
+        if (liveLpgKg > 150) {
+          items = items.map((p) => {
+            if (p.id === 'lpg') {
+              return {
+                ...p,
+                pricePerLiter: liveLpgKg,
+                change: liveLpgKg !== 294.08 ? Math.round((liveLpgKg - 294.08) * 100) / 100 : p.change,
+              };
+            }
+            if (p.id === 'lpg_cylinder' && liveLpgCyl > 1000) {
+              return {
+                ...p,
+                pricePerLiter: liveLpgCyl,
+                change: liveLpgCyl !== 3470.09 ? Math.round((liveLpgCyl - 3470.09) * 100) / 100 : p.change,
+              };
+            }
+            return p;
+          });
+          isLiveLpgFetched = true;
+        }
+      } catch (lpgErr) {
+        console.warn('LPG Parse error:', lpgErr);
       }
     }
   } catch (err) {
-    // پی ایس او سرور نہ ملنے کی صورت میں سرکاری مصدقہ ریٹس بغیر کسی رکاوٹ کے فراہم ہوں گے
+    console.warn('Fuel/LPG fetch failed, using fallback:', err);
   }
 
-  return {
+  const result: PetrolPricesData = {
     items,
-    announcedBy: isLiveFetched 
-      ? 'اوگرا (OGRA) و پاکستان اسٹیٹ آئل (PSO) آن لائن لائیو ریٹس' 
+    announcedBy: (isLivePetrolFetched || isLiveLpgFetched)
+      ? 'اوگرا (OGRA) و پی ایس او (PSO) آن لائن لائیو مصدقہ نرخ'
       : 'اوگرا (OGRA) و وزارتِ پیٹرولیم، حکومتِ پاکستان',
     lastUpdated: new Date().toLocaleDateString('ur-PK', {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
-      timeZone: 'Asia/Karachi'
+      timeZone: 'Asia/Karachi',
     }),
-    effectiveFrom: 'پاکستان، اسلام آباد اور آزاد کشمیر کے لیے مصدقہ سرکاری نرخ',
+    effectiveFrom: 'پاکستان، اسلام آباد، تمام صوبوں اور آزاد کشمیر کے لیے مصدقہ سرکاری نرخ',
   };
+
+  // کیش اپڈیٹ
+  cachedPricesData = result;
+  lastFetchTimestamp = Date.now();
+
+  return result;
 }
