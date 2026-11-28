@@ -22,9 +22,9 @@ export const OFFICIAL_PETROL_PRICES: PetrolProduct[] = [
     id: 'petrol',
     nameUrdu: 'پٹرول (سپر ۹۲)',
     nameEn: 'Motor Gasoline (Super Petrol)',
-    pricePerLiter: 313.00,
+    pricePerLiter: 312.00,
     change: -1.00,
-    previousPrice: 314.00,
+    previousPrice: 313.00,
     unit: 'روپے فی لیٹر',
     category: 'fuel',
   },
@@ -119,7 +119,7 @@ export async function getLivePetrolPrices(): Promise<PetrolPricesData> {
             return {
               ...p,
               pricePerLiter: livePetrol,
-              change: livePetrol !== 313.00 ? livePetrol - 313.00 : p.change,
+              change: livePetrol !== 312.00 ? livePetrol - 312.00 : p.change,
             };
           }
           if (p.id === 'diesel' && liveDiesel > 0) {

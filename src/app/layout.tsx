@@ -4,6 +4,7 @@ import TopBar from '@/components/TopBar';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { ToastProvider } from '@/components/Toast';
+import { getLivePetrolPrices } from '@/lib/api/petrol';
 
 export const metadata: Metadata = {
   title: 'دسترس | پاکستان، آزاد کشمیر اور دنیا بھر کی تازہ ترین خبریں و معلومات',
@@ -19,11 +20,15 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const petrolData = await getLivePetrolPrices();
+  const petrolPrice = petrolData?.items.find((i) => i.id === 'petrol')?.pricePerLiter || 312;
+  const dieselPrice = petrolData?.items.find((i) => i.id === 'diesel')?.pricePerLiter || 346;
+
   return (
     <html lang="ur" dir="rtl">
       <head>
@@ -37,8 +42,8 @@ export default function RootLayout({
       </head>
       <body className="font-urdu-sans bg-slate-50 text-slate-900 min-h-screen flex flex-col selection:bg-emerald-100 selection:text-emerald-900">
         <ToastProvider>
-          <TopBar />
-          <Navbar />
+          <TopBar initialPetrolPrice={petrolPrice} initialDieselPrice={dieselPrice} />
+          <Navbar petrolPrice={petrolPrice} />
           <main className="flex-1 pb-16">
             {children}
           </main>

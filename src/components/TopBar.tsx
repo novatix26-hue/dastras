@@ -6,17 +6,22 @@ import { getLivePrayerTimings } from '@/lib/api/prayer';
 import { getLivePetrolPrices } from '@/lib/api/petrol';
 import { CloudSun, DollarSign, Calendar, Clock, ShieldCheck, PhoneCall, Fuel } from 'lucide-react';
 
-export default async function TopBar() {
+interface TopBarProps {
+  initialPetrolPrice?: number;
+  initialDieselPrice?: number;
+}
+
+export default async function TopBar({ initialPetrolPrice, initialDieselPrice }: TopBarProps = {}) {
   const [weather, currency, prayer, petrolData] = await Promise.all([
     getLiveWeather('Islamabad'),
     getLiveCurrencyRates(),
     getLivePrayerTimings('Islamabad'),
-    getLivePetrolPrices(),
+    initialPetrolPrice && initialDieselPrice ? Promise.resolve(null) : getLivePetrolPrices(),
   ]);
 
   const usdRate = currency?.rates.find((r) => r.code === 'USD')?.rateAgainstPKR || 276.18;
-  const petrolPrice = petrolData?.items.find((i) => i.id === 'petrol')?.pricePerLiter || 313.00;
-  const dieselPrice = petrolData?.items.find((i) => i.id === 'diesel')?.pricePerLiter || 346.00;
+  const petrolPrice = initialPetrolPrice || petrolData?.items.find((i) => i.id === 'petrol')?.pricePerLiter || 312.00;
+  const dieselPrice = initialDieselPrice || petrolData?.items.find((i) => i.id === 'diesel')?.pricePerLiter || 346.00;
 
   // موجودہ عیسوی تاریخ اردو میں
   const now = new Date();

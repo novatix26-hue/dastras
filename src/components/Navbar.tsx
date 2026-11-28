@@ -26,7 +26,11 @@ import {
   Smile
 } from 'lucide-react';
 
-export default function Navbar() {
+interface NavbarProps {
+  petrolPrice?: number;
+}
+
+export default function Navbar({ petrolPrice = 312 }: NavbarProps = {}) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
 
@@ -90,7 +94,7 @@ export default function Navbar() {
               className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 text-xs font-bold font-urdu-sans border border-amber-200/80 transition-colors"
             >
               <Fuel className="w-4 h-4 text-amber-700" />
-              <span>پٹرول: 313.00 روپے</span>
+              <span>پٹرول: {petrolPrice} روپے</span>
             </Link>
 
             <Link
