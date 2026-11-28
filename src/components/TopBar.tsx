@@ -85,6 +85,9 @@ export default async function TopBar({ initialPetrolPrice, initialDieselPrice }:
 
           {/* فوری روابط */}
           <div className="hidden sm:flex items-center gap-3 border-r border-slate-700 pr-3 mr-1">
+            <Link href="/quran" className="hover:text-emerald-400 text-emerald-300 font-bold transition-colors">
+              قرآن مجید
+            </Link>
             <Link href="/prayer-times" className="hover:text-emerald-400 transition-colors">
               اوقات نماز
             </Link>

@@ -23,7 +23,8 @@ import {
   ShieldCheck,
   Fuel,
   Sparkles,
-  Smile
+  Smile,
+  BookOpen
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -39,6 +40,7 @@ export default function Navbar({ petrolPrice = 312 }: NavbarProps = {}) {
     { href: '/category/pakistan', label: 'پاکستان', badge: 'اہم' },
     { href: '/category/azad-kashmir', label: 'آزاد کشمیر', badge: 'خصوصی' },
     { href: '/category/weird', label: 'عجیب و دلچسپ', badge: 'نیا' },
+    { href: '/quran', label: 'قرآن مجید', icon: BookOpen, badge: 'تلاوت' },
     { href: '/kids', label: 'بچوں کی دنیا', badge: 'کہانیاں' },
     { href: '/category/international', label: 'عالمی' },
     { href: '/category/sports', label: 'کھیل' },
@@ -52,6 +54,7 @@ export default function Navbar({ petrolPrice = 312 }: NavbarProps = {}) {
   ];
 
   const secondaryLinks = [
+    { href: '/quran', label: 'قرآن مجید آن لائن' },
     { href: '/kids', label: 'بچوں کی کہانیاں' },
     { href: '/petrol-prices', label: 'پٹرول و ڈیزل ریٹس' },
     { href: '/currency-rates', label: 'کرنسی کنورٹر' },

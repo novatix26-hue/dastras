@@ -51,6 +51,11 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/quran" className="hover:text-emerald-400 transition-colors font-bold text-emerald-300">
+                  قرآن مجید آن لائن (تلاوت و ترجمہ)
+                </Link>
+              </li>
+              <li>
                 <Link href="/articles" className="hover:text-emerald-400 transition-colors">
                   خبریں اور سائنسی مضامین
                 </Link>

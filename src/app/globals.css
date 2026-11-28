@@ -13,9 +13,27 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: 'Amiri Quran';
+  src: url('/fonts/AmiriQuran-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Scheherazade New';
+  src: url('/fonts/ScheherazadeNew-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --font-nastaleeq: 'Jameel Noori Nastaleeq', 'Noto Nastaliq Urdu', serif;
   --font-sans-ur: 'Vazirmatn', 'Noto Sans Arabic', system-ui, -apple-system, sans-serif;
+  --font-quran-amiri: 'Amiri Quran', 'Scheherazade New', 'Noto Naskh Arabic', serif;
+  --font-quran-indopak: 'Scheherazade New', 'Amiri Quran', serif;
   --bg-warm: #F8FAFC;
   --color-primary: #065F46;
   --color-primary-hover: #047857;
@@ -43,6 +61,18 @@ html {
 
 .font-urdu-sans {
   font-family: var(--font-sans-ur);
+}
+
+.font-quran {
+  font-family: var(--font-quran-amiri);
+  letter-spacing: 0.02em;
+  word-spacing: 0.12em;
+}
+
+.font-quran-indopak {
+  font-family: var(--font-quran-indopak);
+  letter-spacing: 0.01em;
+  word-spacing: 0.08em;
 }
 
 @keyframes marqueeRTL {

@@ -217,6 +217,65 @@ export default async function HomePage() {
           </div>
         </section>
 
+        {/* 3.1 قرآنِ کریم آن لائن تلاوت و سلیس اردو ترجمہ */}
+        <section className="bg-gradient-to-br from-emerald-950 via-slate-900 to-teal-950 text-white rounded-3xl p-6 sm:p-10 shadow-xl border border-emerald-700/50 relative overflow-hidden">
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-8 relative z-10">
+            <div className="space-y-4 max-w-2xl text-right">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold text-xs border border-emerald-400/30">
+                <BookOpen className="w-4 h-4 text-emerald-400" />
+                <span>کلامِ الٰہی • آسان و واضح قرآنی رسم الخط</span>
+              </div>
+              <h2 className="text-2xl sm:text-4xl font-black font-nastaleeq leading-tight text-white">
+                قرآن مجید آن لائن تلاوت، اردو ترجمہ و قراءت
+              </h2>
+              <p className="text-sm sm:text-base text-emerald-100 leading-relaxed">
+                پڑھنے میں انتہائی آسان اعراب والا قرآنی رسم الخط، مولانا فتح محمد جالندھری کا سلیس اردو ترجمہ اور مشاری راشد العفاسی و قراء کبار کی خوبصورت آواز میں آیت بہ آیت سماعت۔
+              </p>
+              <div className="flex flex-wrap items-center gap-3 pt-2">
+                <Link
+                  href="/quran"
+                  className="px-6 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm shadow-lg transition-all active:scale-95 flex items-center gap-2"
+                >
+                  <BookOpen className="w-4 h-4" />
+                  <span>تلاوت شروع کریں (۱۱۴ سورتیں)</span>
+                </Link>
+                <Link
+                  href="/quran/36"
+                  className="px-4 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs transition-colors"
+                >
+                  سورۃ یٰس
+                </Link>
+                <Link
+                  href="/quran/55"
+                  className="px-4 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs transition-colors"
+                >
+                  سورۃ الرحمٰن
+                </Link>
+                <Link
+                  href="/quran/67"
+                  className="px-4 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs transition-colors"
+                >
+                  سورۃ الملک
+                </Link>
+              </div>
+            </div>
+
+            {/* آیتِ مبارکہ کارڈ */}
+            <div className="w-full lg:w-96 bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10 text-center space-y-3">
+              <div className="text-xs text-amber-300 font-bold">آیتِ کریمہ</div>
+              <div className="font-quran text-2xl text-amber-200 leading-loose py-1 font-bold">
+                أَلَا بِذِكۡرِ ٱللَّهِ تَطۡمَئِنُّ ٱلۡقُلُوبُ ۝
+              </div>
+              <div className="text-xs text-slate-300">
+                خبردار! اللہ کے ذکر ہی سے دلوں کو اطمینان حاصل ہوتا ہے۔
+              </div>
+              <div className="text-[11px] text-emerald-400 font-bold pt-1">
+                [سورۃ الرعد: ۲۸]
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* 4. موبائل فونز ماڈلز اور قیمتیں پاکستان شوکیس */}
         {featuredMobiles.length > 0 && (
           <section className="space-y-6">
