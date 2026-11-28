@@ -69,24 +69,16 @@ export default function Navbar({ petrolPrice = 312 }: NavbarProps = {}) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* اصلی خطاطی لوگو */}
-          <Link href="/" className="flex items-center gap-3 sm:gap-4 group py-1">
-            <div className="relative h-14 w-32 sm:w-40 flex items-center justify-center overflow-hidden">
+          <Link href="/" className="flex items-center group py-1" aria-label="دَستْرَس ہوم پیج">
+            <div className="relative h-14 w-36 sm:w-44 flex items-center justify-center overflow-hidden">
               <Image
                 src="/logo.png"
                 alt="دَستْرَس"
                 fill
                 priority
-                sizes="(max-width: 640px) 128px, 160px"
+                sizes="(max-width: 640px) 144px, 176px"
                 className="object-contain group-hover:scale-105 transition-transform duration-300"
               />
-            </div>
-            <div className="flex flex-col border-r border-slate-200 pr-3 mr-1">
-              <span className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight font-nastaleeq group-hover:text-emerald-700 transition-colors">
-                دسترس
-              </span>
-              <span className="text-[11px] text-slate-500 font-urdu-sans hidden sm:inline -mt-1 font-semibold">
-                پاکستان، آزاد کشمیر اور دنیا بھر کی باوثوق خبروں کا مرکز
-              </span>
             </div>
           </Link>
 
