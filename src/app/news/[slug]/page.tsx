@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getNewsArticleBySlug, getNewsArticles } from '@/lib/supabaseClient';
 import { formatUrduDate } from '@/lib/utils';
+import OptimizedImage from '@/components/OptimizedImage';
 import { 
   Clock, 
   Share2, 
@@ -187,19 +188,14 @@ export default async function NewsDetailPage({ params }: NewsDetailPageProps) {
           </div>
         </header>
 
-        {/* اہم تصویر */}
-        {news.image_url && (
-          <div className="relative w-full h-72 sm:h-96 md:h-[440px] rounded-2xl overflow-hidden shadow-lg border border-slate-200 bg-slate-100">
-            <Image
-              src={news.image_url}
-              alt={news.title}
-              fill
-              priority
-              className="object-cover"
-              sizes="(max-width: 896px) 100vw, 896px"
-            />
-          </div>
-        )}
+        {/* اہم تصویر مع فال بیک و اسکیلیٹن */}
+        <OptimizedImage
+          src={news.image_url}
+          alt={news.title}
+          priority
+          sizes="(max-width: 896px) 100vw, 896px"
+          containerClassName="w-full h-72 sm:h-96 md:h-[440px] rounded-2xl shadow-lg border border-slate-200"
+        />
 
         {/* فوری خلاصہ باکس (Summary Box) */}
         {news.summary && (

@@ -13,10 +13,11 @@ export interface PetrolPricesData {
   items: PetrolProduct[];
   announcedBy: string;
   lastUpdated: string;
+  lastUpdatedPkt: string;
   effectiveFrom: string;
 }
 
-// اوگرا (OGRA) و پاکستان اسٹیٹ آئل (PSO) کے موجودہ سرکاری و نوٹیفائیڈ بیس لائن ریٹس
+// اوگرا (OGRA) و پی ایس او (PSO) کے موجودہ سرکاری نوٹیفائیڈ بیس لائن ریٹس
 export const OFFICIAL_PETROL_PRICES: PetrolProduct[] = [
   {
     id: 'petrol',
@@ -90,17 +91,37 @@ export const OFFICIAL_PETROL_PRICES: PetrolProduct[] = [
   },
 ];
 
-// میموری کیش برائے ہائی پرفارمنس و عدم انحصار
+// قلیل مدتی میموری کیش (2 منٹ) تاکہ ایک ہی وقت آنے والی درخواستوں پر سرور بلاک نہ ہو
 let cachedPricesData: PetrolPricesData | null = null;
 let lastFetchTimestamp = 0;
 
 /**
- * پی ایس او (PSO) اور اوگرا (OGRA) ریگولیٹڈ ذرائع سے پٹرول، ڈیزل و ایل پی جی کی خودکار لائیو قیمتیں
+ * پاکستان اسٹینڈرڈ ٹائم (PKT) میں لائیو ٹائم اسٹیمپ فارمیٹنگ
  */
-export async function getLivePetrolPrices(): Promise<PetrolPricesData> {
+export function getLivePktTimestamp(): string {
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('ur-PK', {
+    timeZone: 'Asia/Karachi',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+  const timeStr = now.toLocaleTimeString('ur-PK', {
+    timeZone: 'Asia/Karachi',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  });
+  return `${dateStr}، ${timeStr} (پاکستان ٹائم PKT)`;
+}
+
+/**
+ * پی ایس او (PSO) اور اوگرا (OGRA) ریگولیٹڈ ذرائع سے پٹرول، ڈیزل و ایل پی جی کی خودکار لائیو قیمتیں
+ * کسی بھی پرانی یا فرضی کیشنگ کو روکنے کے لیے cache: 'no-store' استعمال کیا جاتا ہے۔
+ */
+export async function getLivePetrolPrices(forceFresh = false): Promise<PetrolPricesData> {
   const now = Date.now();
-  // اگر 10 منٹ کے اندر تازہ ڈیٹا موصول ہو چکا ہو تو کیش استعمال کریں
-  if (cachedPricesData && now - lastFetchTimestamp < 10 * 60 * 1000) {
+  if (!forceFresh && cachedPricesData && now - lastFetchTimestamp < 2 * 60 * 1000) {
     return cachedPricesData;
   }
 
@@ -109,25 +130,25 @@ export async function getLivePetrolPrices(): Promise<PetrolPricesData> {
   let isLiveLpgFetched = false;
 
   try {
-    // پی ایس او اور ایل پی جی ذرائع متوازی فیچ ہوں تاکہ کوئی تاخیر نہ ہو
+    // پی ایس او اور ایل پی جی دونوں ذرائع متوازی فیچ ہوں (cache: 'no-store' تاکہ کیش میں پرانی قیمتیں نہ رکیں)
     const [psoRes, lpgRes] = await Promise.allSettled([
       fetch('https://psopk.com/', {
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 DastarasBot/1.0',
         },
         signal: AbortSignal.timeout(4000),
-        next: { revalidate: 1800 },
+        cache: 'no-store',
       }),
       fetch('https://lpggasprice.pk/', {
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 DastarasBot/1.0',
         },
         signal: AbortSignal.timeout(4000),
-        next: { revalidate: 1800 },
+        cache: 'no-store',
       }),
     ]);
 
-    // ۱. پٹرول و ڈیزل پارسنگ (PSO Live Rates)
+    // ۱. پی ایس او پٹرول و ڈیزل پارسنگ (PSO Live Rates)
     if (psoRes.status === 'fulfilled' && psoRes.value.ok) {
       try {
         const html = await psoRes.value.text();
@@ -176,12 +197,12 @@ export async function getLivePetrolPrices(): Promise<PetrolPricesData> {
       try {
         const lpgHtml = await lpgRes.value.text();
 
-        // 1. فی کلوگرام قیمت تلاش کریں
+        // 1. فی کلوگرام قیمت
         const kgMatch = lpgHtml.match(/"priceSpecification"[\s\S]*?"price":\s*"([0-9.]+)"/i) ||
                         lpgHtml.match(/Rs\.?\s*([0-9]+(?:\.[0-9]+)?)\s*per\s*kg/i);
         const liveLpgKg = kgMatch ? parseFloat(kgMatch[1]) : 0;
 
-        // 2. 11.8 کلو گھریلو سلنڈر قیمت تلاش کریں
+        // 2. 11.8 کلو گھریلو سلنڈر قیمت
         const cylMatch = lpgHtml.match(/Rs\.?\s*([0-9,]+(?:\.[0-9]+)?)\s*for a domestic 11\.8kg cylinder/i) ||
                          lpgHtml.match(/domestic\s*11\.8\s*kg\s*cylinder[^\d]*Rs\.?\s*([0-9,]+(?:\.[0-9]+)?)/i);
         const liveLpgCyl = cylMatch 
@@ -213,24 +234,21 @@ export async function getLivePetrolPrices(): Promise<PetrolPricesData> {
       }
     }
   } catch (err) {
-    console.warn('Fuel/LPG fetch failed, using fallback:', err);
+    console.warn('Fuel/LPG fetch failed, using official baseline:', err);
   }
+
+  const livePktTimestamp = getLivePktTimestamp();
 
   const result: PetrolPricesData = {
     items,
     announcedBy: (isLivePetrolFetched || isLiveLpgFetched)
       ? 'اوگرا (OGRA) و پی ایس او (PSO) آن لائن لائیو مصدقہ نرخ'
       : 'اوگرا (OGRA) و وزارتِ پیٹرولیم، حکومتِ پاکستان',
-    lastUpdated: new Date().toLocaleDateString('ur-PK', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-      timeZone: 'Asia/Karachi',
-    }),
+    lastUpdated: livePktTimestamp,
+    lastUpdatedPkt: livePktTimestamp,
     effectiveFrom: 'پاکستان، اسلام آباد، تمام صوبوں اور آزاد کشمیر کے لیے مصدقہ سرکاری نرخ',
   };
 
-  // کیش اپڈیٹ
   cachedPricesData = result;
   lastFetchTimestamp = Date.now();
 

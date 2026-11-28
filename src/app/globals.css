@@ -76,14 +76,20 @@ html {
 }
 
 @keyframes marqueeRTL {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
 }
 
 .animate-marquee {
   display: inline-flex;
   white-space: nowrap;
-  animation: marqueeRTL 110s linear infinite;
+  animation: marqueeRTL 60s linear infinite;
+  animation-delay: 0s;
+  will-change: transform;
 }
 
 .animate-marquee:hover {

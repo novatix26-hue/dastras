@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { PetrolPricesData, PetrolProduct } from '@/lib/api/petrol';
-import { Fuel, Calculator, TrendingUp, TrendingDown, ShieldCheck, ArrowLeftRight, CheckCircle2 } from 'lucide-react';
+import { Fuel, Flame, Calculator, TrendingUp, TrendingDown, ShieldCheck, ArrowLeftRight, CheckCircle2, Clock } from 'lucide-react';
 
 interface PetrolClientViewProps {
   initialData: PetrolPricesData;
@@ -19,17 +19,25 @@ export default function PetrolClientView({ initialData }: PetrolClientViewProps)
 
   return (
     <div className="space-y-8 font-urdu-sans">
-      {/* ہیڈر */}
-      <div className="text-center max-w-3xl mx-auto space-y-3">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-100 text-amber-900 font-bold text-sm">
-          <Fuel className="w-4 h-4 text-amber-800" />
-          <span>اوگرا و وزارتِ خزانہ، حکومتِ پاکستان کے مصدقہ نرخ</span>
+      {/* ہیڈر مع لائیو PKT ٹائم اسٹیمپ */}
+      <div className="text-center max-w-3xl mx-auto space-y-4">
+        <div className="flex flex-wrap items-center justify-center gap-2.5">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 text-emerald-900 font-bold text-xs sm:text-sm border border-emerald-300 shadow-sm">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+            <Clock className="w-3.5 h-3.5 text-emerald-700" />
+            <span>آخری تصدیق شدہ اپڈیٹ: {initialData.lastUpdatedPkt || initialData.lastUpdated}</span>
+          </div>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-50 text-amber-900 font-bold text-xs sm:text-sm border border-amber-200">
+            <ShieldCheck className="w-4 h-4 text-amber-700" />
+            <span>اوگرا (OGRA) و پی ایس او مصدقہ</span>
+          </div>
         </div>
-        <h1 className="text-3xl sm:text-5xl font-black text-slate-900 font-nastaleeq">
-          پاکستان میں پٹرول اور ڈیزل کی تازہ ترین قیمتیں
+
+        <h1 className="text-3xl sm:text-5xl font-black text-slate-900 font-nastaleeq leading-tight">
+          پاکستان میں پٹرول، ڈیزل اور ایل پی جی کی تازہ ترین قیمتیں
         </h1>
         <p className="text-base sm:text-lg text-slate-600">
-          پٹرول، ہائی اسپیڈ ڈیزل، لائٹ ڈیزل، مٹی کے تیل اور ایل پی جی کے سرکاری نرخ مع خودکار فیول خرچ کیلکولیٹر
+          پٹرول، ہائی اسپیڈ ڈیزل، ایل پی جی (فی کلو و گھریلو سلنڈر)، ہائی اوکٹین، مٹی کے تیل کے سرکاری نرخ مع خودکار فیول خرچ کیلکولیٹر
         </p>
       </div>
 
@@ -38,14 +46,18 @@ export default function PetrolClientView({ initialData }: PetrolClientViewProps)
         {initialData.items.map((fuel) => (
           <div
             key={fuel.id}
-            className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow space-y-4"
+            className={`rounded-3xl p-6 border shadow-sm hover:shadow-md transition-all space-y-4 ${
+              fuel.id === 'lpg' || fuel.id === 'lpg_cylinder'
+                ? 'bg-gradient-to-br from-amber-50/60 to-white border-amber-300 ring-1 ring-amber-200'
+                : 'bg-white border-slate-200'
+            }`}
           >
             <div className="flex items-center justify-between">
-              <span className="p-2.5 rounded-2xl bg-amber-50 text-amber-800">
-                <Fuel className="w-6 h-6" />
+              <span className={`p-2.5 rounded-2xl ${fuel.category === 'gas' ? 'bg-amber-100 text-amber-900' : 'bg-emerald-50 text-emerald-800'}`}>
+                {fuel.category === 'gas' ? <Flame className="w-6 h-6 text-amber-600" /> : <Fuel className="w-6 h-6 text-emerald-600" />}
               </span>
-              <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">
-                {fuel.category === 'gas' ? 'گیس' : 'فیول'}
+              <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${fuel.category === 'gas' ? 'bg-amber-100 text-amber-800 font-nastaleeq' : 'bg-slate-100 text-slate-600'}`}>
+                {fuel.category === 'gas' ? 'گیس (ایل پی جی)' : 'پیٹرولیم فیول'}
               </span>
             </div>
 
@@ -57,9 +69,9 @@ export default function PetrolClientView({ initialData }: PetrolClientViewProps)
             <div className="pt-2 border-t border-slate-100 flex items-end justify-between">
               <div>
                 <div className="text-3xl font-black text-amber-600">
-                  روپے {fuel.pricePerLiter}
+                  روپے {fuel.pricePerLiter.toLocaleString()}
                 </div>
-                <div className="text-xs text-slate-400 mt-0.5">{fuel.unit}</div>
+                <div className="text-xs font-bold text-slate-500 mt-0.5">{fuel.unit}</div>
               </div>
 
               {fuel.change !== 0 && (

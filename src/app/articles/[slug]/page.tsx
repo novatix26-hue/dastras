@@ -8,6 +8,7 @@ import { formatUrduDate } from '@/lib/utils';
 import ArticleCard from '@/components/ArticleCard';
 import AdSlot from '@/components/AdSlot';
 import ArticleShareActions from '@/components/ArticleShareActions';
+import OptimizedImage from '@/components/OptimizedImage';
 import { 
   Calendar, 
   User, 
@@ -179,19 +180,14 @@ export default async function ArticleDetailPage({ params }: ArticlePageProps) {
           </div>
         </header>
 
-        {/* نمایاں تصویر */}
-        {article.image_url && (
-          <div className="relative w-full h-72 sm:h-96 md:h-[450px] rounded-2xl overflow-hidden shadow-lg border border-slate-200 bg-slate-100">
-            <Image
-              src={article.image_url}
-              alt={article.title}
-              fill
-              priority
-              className="object-cover"
-              sizes="(max-width: 896px) 100vw, 896px"
-            />
-          </div>
-        )}
+        {/* نمایاں تصویر مع فال بیک اور اسکیلیٹن */}
+        <OptimizedImage
+          src={article.image_url}
+          alt={article.title}
+          priority
+          sizes="(max-width: 896px) 100vw, 896px"
+          containerClassName="w-full h-72 sm:h-96 md:h-[450px] rounded-2xl shadow-lg border border-slate-200"
+        />
 
         {/* خلاصہ (اگر موجود ہو) */}
         {article.summary && (

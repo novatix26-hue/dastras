@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Article } from '@/lib/types';
 import { formatUrduDate } from '@/lib/utils';
+import { getCurrentPktDateString, getDailyStory, getPktFormattedDate } from '@/lib/dailyStory';
 import { 
   Sparkles, 
   BookOpen, 
@@ -30,7 +31,20 @@ export default function KidsClientView({ initialStories }: KidsClientViewProps) 
   const [selectedTag, setSelectedTag] = useState<string>('تمام');
   const [playingTitle, setPlayingTitle] = useState<string | null>(null);
   const [audioLoading, setAudioLoading] = useState(false);
+  const [currentPktDate, setCurrentPktDate] = useState<string>(() => getCurrentPktDateString());
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // رات ۱۲:۰۰ بجے (PKT) تاریخ بدلتے ہی بغیر ریفریش نئی کہانی لوڈ کرنے کے لیے ۶۰ سیکنڈ کا انٹرول
+  useEffect(() => {
+    const checkMidnight = () => {
+      const todayPkt = getCurrentPktDateString();
+      if (todayPkt !== currentPktDate) {
+        setCurrentPktDate(todayPkt);
+      }
+    };
+    const intervalId = setInterval(checkMidnight, 60000);
+    return () => clearInterval(intervalId);
+  }, [currentPktDate]);
 
   // جب کمپوننٹ ان ماؤنٹ ہو تو آڈیو بند کر دیں
   useEffect(() => {
@@ -45,8 +59,10 @@ export default function KidsClientView({ initialStories }: KidsClientViewProps) 
     };
   }, []);
 
-  const featuredStory = initialStories[0];
-  const otherStories = initialStories.slice(1);
+  // آج کی کہانی کا پاکستان اسٹینڈرڈ ٹائم (PKT) کے لحاظ سے خودکار تعین
+  const { story: dailyStory, index: dailyIndex } = getDailyStory(initialStories, currentPktDate);
+  const featuredStory = dailyStory || initialStories[0];
+  const otherStories = initialStories.filter((_, idx) => idx !== dailyIndex);
 
   const filteredStories = selectedTag === 'تمام'
     ? otherStories

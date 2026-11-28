@@ -18,7 +18,8 @@ export const metadata: Metadata = {
   ],
 };
 
-export const revalidate = 60; // 1 منٹ کیشنگ
+export const dynamic = 'force-dynamic';
+export const revalidate = 0; // لائیو اور تاریخ بدلتے ہی فوری رینڈرنگ
 
 export default async function KidsPage() {
   const stories = await getArticles({

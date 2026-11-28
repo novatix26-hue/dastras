@@ -11,13 +11,13 @@ import {
 import { getLiveWeather } from '@/lib/api/weather';
 import { getLiveCurrencyRates } from '@/lib/api/currency';
 import { getLivePrayerTimings } from '@/lib/api/prayer';
-import Ticker from '@/components/Ticker';
 import WeatherWidget from '@/components/WeatherWidget';
 import PrayerWidget from '@/components/PrayerWidget';
 import CurrencyWidget from '@/components/CurrencyWidget';
 import PetrolWidget from '@/components/PetrolWidget';
 import MobileCard from '@/components/MobileCard';
 import AdSlot from '@/components/AdSlot';
+import OptimizedImage from '@/components/OptimizedImage';
 import { 
   Flame, 
   Clock, 
@@ -38,6 +38,7 @@ import {
   Compass
 } from 'lucide-react';
 import { formatUrduDate } from '@/lib/utils';
+import { getDailyStory } from '@/lib/dailyStory';
 
 export const revalidate = 60; // 1 منٹ کیشنگ
 
@@ -103,10 +104,7 @@ export default async function HomePage() {
   const featuredMobiles = mobiles.slice(0, 4);
 
   return (
-    <div className="space-y-10 sm:space-y-14 font-urdu-sans">
-      {/* 1. بریکنگ نیوز ٹکر مارکی */}
-      <Ticker articles={tickerArticles} />
-
+    <div className="space-y-10 sm:space-y-14 font-urdu-sans pt-4 sm:pt-6">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 sm:space-y-16">
         {/* 2. اردو پوائنٹ اسٹائل ہیرو گرڈ (مین فیچرڈ + سائیڈ بار ہیڈلائنز) */}
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -115,13 +113,13 @@ export default async function HomePage() {
             {heroArticle ? (
               <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden group hover:shadow-md transition-shadow">
                 <div className="relative h-72 sm:h-[420px] w-full bg-slate-100 overflow-hidden">
-                  <Image
-                    src={heroArticle.image_url || 'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?auto=format&fit=crop&w=1200&q=80'}
+                  <OptimizedImage
+                    src={heroArticle.image_url}
                     alt={heroArticle.title}
-                    fill
                     priority
                     sizes="(max-width: 1024px) 100vw, 66vw"
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    className="group-hover:scale-105 transition-transform duration-500"
+                    containerClassName="w-full h-full"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-transparent" />
                   <div className="absolute bottom-6 right-6 left-6 text-white space-y-3">
@@ -304,53 +302,56 @@ export default async function HomePage() {
         )}
 
         {/* 4.1 بچوں کی دنیا شوکیس */}
-        {kidsStories && kidsStories.length > 0 && (
-          <section className="bg-gradient-to-r from-purple-900 via-indigo-900 to-slate-900 text-white rounded-3xl sm:rounded-[2.5rem] p-6 sm:p-10 shadow-xl overflow-hidden relative">
-            <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
-              <div className="space-y-4 max-w-2xl">
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-500/20 text-purple-300 font-bold text-xs border border-purple-400/30">
-                  <Star className="w-4 h-4 fill-amber-300 text-amber-300" />
-                  <span>بچوں کی رنگین دنیا • آج کا خاص انتخاب</span>
+        {kidsStories && kidsStories.length > 0 && (() => {
+          const todaysStory = getDailyStory(kidsStories).story || kidsStories[0];
+          return (
+            <section className="bg-gradient-to-r from-purple-900 via-indigo-900 to-slate-900 text-white rounded-3xl sm:rounded-[2.5rem] p-6 sm:p-10 shadow-xl overflow-hidden relative">
+              <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
+                <div className="space-y-4 max-w-2xl">
+                  <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-500/20 text-purple-300 font-bold text-xs border border-purple-400/30">
+                    <Star className="w-4 h-4 fill-amber-300 text-amber-300" />
+                    <span>بچوں کی رنگین دنیا • آج کی خاص کہانی</span>
+                  </div>
+                  <h2 className="text-2xl sm:text-4xl font-black font-nastaleeq leading-tight text-white">
+                    {todaysStory.title}
+                  </h2>
+                  <p className="text-sm sm:text-base text-purple-100 line-clamp-2 leading-relaxed">
+                    {todaysStory.summary || todaysStory.content.slice(0, 180)}...
+                  </p>
+                  <div className="flex items-center gap-3 pt-2">
+                    <Link
+                      href={`/articles/${todaysStory.slug}`}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-purple-950 font-black text-xs sm:text-sm shadow-md transition-all active:scale-95"
+                    >
+                      <span>کہانی پڑھیں</span>
+                      <ArrowLeft className="w-4 h-4" />
+                    </Link>
+                    <Link
+                      href="/kids"
+                      className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs sm:text-sm border border-white/10 transition-colors"
+                    >
+                      <BookOpen className="w-4 h-4 text-purple-300" />
+                      <span>بچوں کی تمام کہانیاں</span>
+                    </Link>
+                  </div>
                 </div>
-                <h2 className="text-2xl sm:text-4xl font-black font-nastaleeq leading-tight text-white">
-                  {kidsStories[0].title}
-                </h2>
-                <p className="text-sm sm:text-base text-purple-100 line-clamp-2 leading-relaxed">
-                  {kidsStories[0].summary || kidsStories[0].content.slice(0, 180)}...
-                </p>
-                <div className="flex items-center gap-3 pt-2">
-                  <Link
-                    href={`/articles/${kidsStories[0].slug}`}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-purple-950 font-black text-xs sm:text-sm shadow-md transition-all active:scale-95"
-                  >
-                    <span>کہانی پڑھیں</span>
-                    <ArrowLeft className="w-4 h-4" />
-                  </Link>
-                  <Link
-                    href="/kids"
-                    className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs sm:text-sm border border-white/10 transition-colors"
-                  >
-                    <BookOpen className="w-4 h-4 text-purple-300" />
-                    <span>بچوں کی تمام کہانیاں</span>
-                  </Link>
-                </div>
-              </div>
 
-              <div className="relative w-full lg:w-96 h-56 sm:h-64 rounded-2xl overflow-hidden border-2 border-white/10 shadow-2xl shrink-0">
-                <Image
-                  src={kidsStories[0].image_url || 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=800&q=80'}
-                  alt={kidsStories[0].title}
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 384px"
-                  className="object-cover"
-                />
-                <span className="absolute bottom-3 right-3 bg-purple-950/80 backdrop-blur-sm text-purple-200 text-xs px-3 py-1 rounded-full font-bold">
-                  تصویری جھلکیاں 📸
-                </span>
+                <div className="relative w-full lg:w-96 h-56 sm:h-64 rounded-2xl overflow-hidden border-2 border-white/10 shadow-2xl shrink-0">
+                  <Image
+                    src={todaysStory.image_url || 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=800&q=80'}
+                    alt={todaysStory.title}
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 384px"
+                    className="object-cover"
+                  />
+                  <span className="absolute bottom-3 right-3 bg-purple-950/80 backdrop-blur-sm text-purple-200 text-xs px-3 py-1 rounded-full font-bold">
+                    تصویری جھلکیاں 📸
+                  </span>
+                </div>
               </div>
-            </div>
-          </section>
-        )}
+            </section>
+          );
+        })()}
 
         {/* 4.2 عجیب و دلچسپ خبریں شوکیس */}
         {weirdArticles && weirdArticles.length > 0 && (

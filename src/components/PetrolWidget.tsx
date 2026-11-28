@@ -53,9 +53,15 @@ export default async function PetrolWidget() {
         ))}
       </div>
 
-      {/* الرٹ نوٹیفکیشن */}
-      <div className="text-[11px] text-amber-200/90 bg-amber-900/40 p-2 rounded-xl border border-amber-600/30 text-center">
-        اوگرا (OGRA) و پی ایس او کے روزانہ مصدقہ لائیو سرکاری نرخ
+      {/* الرٹ نوٹیفکیشن مع لائیو ٹائم اسٹیمپ */}
+      <div className="text-[11px] text-amber-200/90 bg-amber-900/40 p-2 rounded-xl border border-amber-600/30 flex items-center justify-between">
+        <span className="flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span>اوگرا و پی ایس او مصدقہ نرخ</span>
+        </span>
+        <span className="text-[10px] text-amber-300">
+          {data.lastUpdatedPkt || data.lastUpdated}
+        </span>
       </div>
     </div>
   );

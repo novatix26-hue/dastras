@@ -235,6 +235,57 @@ ${cleanSnippet}
   };
 }
 
+// RSS فیڈ سے تصویر (enclosure, media:content, media:thumbnail یا embedded img) نکالنے کا سمارٹ فنکشن
+function extractImageFromRssItem(item: any): string | null {
+  try {
+    // 1. enclosure ٹیگ (معیاری RSS فیڈز مثلاً Dawn, Jang, BBC)
+    if (item?.enclosure) {
+      const enc = Array.isArray(item.enclosure) ? item.enclosure[0] : item.enclosure;
+      const url = enc?.$?.url || enc?.url;
+      if (url && typeof url === 'string' && url.startsWith('http')) {
+        return url;
+      }
+    }
+
+    // 2. media:content یا media:thumbnail
+    const media = item?.['media:content'] || item?.['media:thumbnail'];
+    if (media) {
+      const m = Array.isArray(media) ? media[0] : media;
+      const url = m?.$?.url || m?.url;
+      if (url && typeof url === 'string' && url.startsWith('http')) {
+        return url;
+      }
+    }
+
+    // 3. media:group
+    const group = item?.['media:group'];
+    if (group) {
+      const groupMedia = group['media:content'] || group['media:thumbnail'];
+      const m = Array.isArray(groupMedia) ? groupMedia[0] : groupMedia;
+      const url = m?.$?.url || m?.url;
+      if (url && typeof url === 'string' && url.startsWith('http')) {
+        return url;
+      }
+    }
+
+    // 4. description یا content میں ایمبیڈڈ <img> ٹیگ
+    const htmlSnippet = [
+      typeof item?.description === 'string' ? item.description : item?.description?._ || '',
+      typeof item?.['content:encoded'] === 'string' ? item['content:encoded'] : '',
+      typeof item?.summary === 'string' ? item.summary : item?.summary?._ || '',
+    ].join(' ');
+
+    const imgMatch = htmlSnippet.match(/<img[^>]+src=["'](https?:\/\/[^"']+\.(?:jpg|jpeg|png|webp|avif)[^"']*)["']/i) ||
+                     htmlSnippet.match(/<img[^>]+src=["'](https?:\/\/[^"']+)["']/i);
+
+    if (imgMatch && imgMatch[1] && !imgMatch[1].includes('feedburner') && !imgMatch[1].includes('1x1') && !imgMatch[1].includes('spacer')) {
+      return imgMatch[1];
+    }
+  } catch {}
+
+  return null;
+}
+
 export async function GET(request: Request) {
   return handleFetchNews(request);
 }
@@ -348,7 +399,8 @@ async function handleFetchNews(request: Request) {
           feed.name
         );
 
-        const imageUrl = CATEGORY_DEFAULT_IMAGES[feed.category] || CATEGORY_DEFAULT_IMAGES['pakistan'];
+        const extractedImg = extractImageFromRssItem(item);
+        const imageUrl = extractedImg || CATEGORY_DEFAULT_IMAGES[feed.category] || CATEGORY_DEFAULT_IMAGES['pakistan'];
         const publishedDate = item.pubDate ? new Date(item.pubDate).toISOString() : new Date().toISOString();
 
         // 1. مرکزی جدول (articles) میں محفوظ کریں
